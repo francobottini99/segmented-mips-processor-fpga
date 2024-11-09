@@ -1,220 +1,219 @@
-# Diseño e Implementación de un Procesador MIPS Segmentado en una FPGA
+# Design and Implementation of a Segmented MIPS Processor on an FPGA
 
-### Autores: 
-- **Bottini, Franco Nicolas** 
-- **Robledo, Valentin** 
+### Authors:
+- **Bottini, Franco Nicolas**
+- **Robledo, Valentin**
 
-## Tabla de Contenidos
+## Table of Contents
 
-- [¿ Cómo usar este repositorio ?](#¿-cómo-usar-este-repositorio-)
-   - [1. Clonar el repositorio](#1-clonar-el-repositorio)
-   - [2. Crear un nuevo proyecto en Vivado](#2-crear-un-nuevo-proyecto-en-vivado)
-   - [3. Agregar los archivos del proyecto](#3-agregar-los-archivos-del-proyecto)
-   - [4. Generar el bitstream](#4-generar-el-bitstream)
-   - [5. Programar la FPGA](#5-programar-la-fpga)
-   - [6. Ejectuar la aplicación de usuario](#6-ejectuar-la-aplicación-de-usuario)
-- [¿ Cómo usar la aplicación de usuario ?](#¿-cómo-usar-la-aplicación-de-usuario-)
-   - [1. Cargar un programa en la memoria de instrucciones](#1-cargar-un-programa-en-la-memoria-de-instrucciones)
-   - [2. Ejecutar el programa cargado en la memoria de instrucciones](#2-ejecutar-el-programa-cargado-en-la-memoria-de-instrucciones)
-   - [3. Ejecutar el programa cargado en la memoria de instrucciones paso a paso](#3-ejecutar-el-programa-cargado-en-la-memoria-de-instrucciones-paso-a-paso)
-   - [4. Ejecutar el programa cargado en la memoria de instrucciones en modo debug](#4-ejecutar-el-programa-cargado-en-la-memoria-de-instrucciones-en-modo-debug)
-   - [5. Eliminar el programa cargado en la memoria de instrucciones](#5-eliminar-el-programa-cargado-en-la-memoria-de-instrucciones)
-   - [6. Salir de la aplicación](#6-salir-de-la-aplicación)
-- [1. Resumen](#1-resumen)
-- [2. Especificaciones del Procesador](#2-especificaciones-del-procesador)
-- [3. Desarrollo](#3-desarrollo)
-    - [3.1. Arquitectura del procesador](#31-arquitectura-del-procesador)
-    - [3.2. Etapas del Pipeline](#32-etapas-del-pipeline)
-        - [3.2.1. Etapa `IF`](#321-etapa-if)
-        - [3.2.2. Etapa `ID`](#322-etapa-id)
-        - [3.2.3. Etapa `EX`](#323-etapa-ex)
-        - [3.2.4. Etapa `MEM`](#324-etapa-mem)
-        - [3.2.5. Etapa `WB`](#325-etapa-wb)
-    - [3.3. Control y Detención de Riesgos](#33-control-y-detención-de-riesgos)
-        - [3.3.1. Unidad de Control Principal](#331-unidad-de-control-principal)
-            - [3.3.1.1. Tabla de Control](#3311-tabla-de-control-principal)
-        - [3.3.2. Unidad de Control Alu](#332-unidad-de-control-alu)
-            - [3.3.2.1. Tabla de Control](#3321-tabla-de-control-alu)
-        - [3.3.3. Unidad de Cortocircuito](#333-unidad-de-cortocircuito)
-            - [3.3.3.1. Tabla de Control](#3331-tabla-de-control-cortocircuito)
-        - [3.3.4. Unidad de Detención de Riesgos](#334-unidad-de-detención-de-riesgos)
-            - [3.3.4.1 Tabla de Control](#3341-tabla-de-control-detención-de-riesgos)
-    - [3.4. Operación del Procesador](#34-operación-del-procesador)
+- [How to use this repository?](#how-to-use-this-repository)
+   - [1. Clone the repository](#1-clone-the-repository)
+   - [2. Create a new project in Vivado](#2-create-a-new-project-in-vivado)
+   - [3. Add project files](#3-add-the-project-files)
+   - [4. Generate the bitstream](#4-generate-the-bitstream)
+   - [5. Program the FPGA](#5-program-the-fpga)
+   - [6. Run the user application](#6-run-the-user-application)
+- [How to use the user application?](#how-to-use-the-user-application)
+   - [1. Load a program into instruction memory](#1-load-a-program-into-instruction-memory)
+   - [2. Run the loaded program in instruction memory](#2-run-the-loaded-program-in-instruction-memory)
+   - [3. Run the loaded program in instruction memory step-by-step](#3-run-the-loaded-program-in-instruction-memory-step-by-step)
+   - [4. Run the loaded program in instruction memory in debug mode](#4-run-the-loaded-program-in-instruction-memory-in-debug-mode)
+   - [5. Delete the loaded program in instruction memory](#5-delete-the-loaded-program-in-instruction-memory)
+   - [6. Exit the application](#6-exit-the-application)
+- [1. Summary](#1-summary)
+- [2. Processor Specifications](#2-processor-specifications)
+- [3. Development](#3-development)
+    - [3.1. Processor Architecture](#31-processor-architecture)
+    - [3.2. Pipeline Stages](#32-pipeline-stages)
+        - [3.2.1. Stage `IF`](#321-stage-if)
+        - [3.2.2. Stage `ID`](#322-stage-id)
+        - [3.2.3. Stage `EX`](#323-stage-ex)
+        - [3.2.4. Stage `MEM`](#324-stage-mem)
+        - [3.2.5. Stage `WB`](#325-stage-wb)
+    - [3.3. Control and Hazard Detection](#33-control-and-hazard-detection)
+        - [3.3.1. Main Control Unit](#331-main-control-unit)
+            - [3.3.1.1. Control Table](#3311-control-table)
+        - [3.3.2. ALU Control Unit](#332-alu-control-unit)
+            - [3.3.2.1. Control Table](#3321-control-table)
+        - [3.3.3. Short Circuit Unit](#333-short-circuit-unit)
+            - [3.3.3.1. Control Table](#3331-control-table)
+        - [3.3.4. Hazard Detection Unit](#334-hazard-detection-unit)
+            - [3.3.4.1 Hazard Detection Control Table](#3341-control-table)
+    - [3.4. Processor Operation](#34-processor-operation)
         - [3.4.1. UART](#341-uart)
         - [3.4.2. Debugger](#342-debugger)
-- [4. Simulaciones](#4-simulaciones)
-  	- [4.1. Etapa `IF`](#41-tests-etapa-if)
-		- [4.1.1. Test Bench para el módulo `PC`](#411-test-bench-para-el-módulo-pc)
-		- [4.1.2. Test Bench para el módulo `Instruction Memory`](#412-test-bench-para-el-módulo-instruction-memory)
-		- [4.1.3. Test Brench de integración](#413-test-bench-de-integración)
-  	- [4.2. Etapa `ID`](#42-tests-etapa-id)
-		- [4.2.1. Test Bench para el módulo `Register Bank`](#421-test-bench-para-el-módulo-register-bank)
-		- [4.2.2. Test Bench para el módulo `Main Control`](#422-test-bench-para-el-módulo-main-control)
-		- [4.2.3. Test Brench de integración](#423-test-bench-de-integración)
-  	- [4.3. Etapa `EX`](#43-tests-etapa-ex)
-		- [4.3.1. Test Bench para el módulo `ALU`](#431-test-bench-para-el-módulo-alu)
-		- [4.3.2. Test Bench para el módulo `ALU Control`](#432-test-bench-para-el-módulo-alu-control)
-		- [4.3.3. Test Brench de integración](#433-test-bench-de-integración)
-  	- [4.4. Etapa `MEM`](#44-tests-etapa-mem)
-		- [4.4.1. Test Bench para el módulo `Data Memory`](#441-test-bench-para-el-módulo-data-memory)
-		- [4.4.2. Test Brench de integración](#442-test-bench-de-integración)
-  	- [4.5. Etapa `WB`](#45-tests-etapa-wb)
-		- [4.5.1. Test Brench de integración](#451-test-bench-de-integración)
-	- [4.6. Test `Hazards Units`](#46-test-hazards-units)
-		- [4.6.1. Test Bench para el módulo `Short Circuit`](#461-test-bench-para-el-módulo-short-circuit)
-		- [4.6.2. Test Bench para el módulo `Risk Detection`](#462-test-bench-para-el-módulo-risk-detection)
-	- [4.7. Otros Tests](#47-otros-tests)
-	- [4.8. Test de Integración `Mips`](#48-test-de-integración-mips)
-		- [4.8.1. Anexo 1: Programas de Prueba](#481-anexo-1-programas-de-prueba) 
-			- [4.8.1.1. Programa 1](#4811-programa-1)
-			- [4.8.1.2. Programa 2](#4811-programa-2)
-			- [4.8.1.3. Programa 3](#4811-programa-3)
-		- [4.8.2. Anexo 2: Resultados de Ejecución](#482-anexo-2-resultados-de-ejecución)
-			- [4.8.2.1. Ejecución Programa 1](#4821-ejecución-programa-1)
-			- [4.8.2.2. Ejecución Programa 2](#4822-ejecución-programa-2)
-			- [4.8.2.3. Ejecución Programa 3](#4823-ejecución-programa-3)
-	- [4.9. Test de Sistema](#49-test-de-sistema)
-- [5. Resultados](#5-resultados)
-   - [5.1. Programa 1](#51-Programa-1)
-   - [5.2. Programa 2](#52-Programa-2)
-   - [5.3. Programa 3](#53-Programa-3)
-- [6. Referencias](#6-referencias)
-        
-## ¿ Cómo usar este repositorio ?
+- [4. Simulations](#4-simulations)
+  	- [4.1. `IF` Stage](#41-if-stage-tests)
+		- [4.1.1. Test Bench for the `PC` Module](#411-test-bench-for-the-pc-module)
+		- [4.1.2. Test Bench for the `Instruction Memory` Module](#412-test-bench-for-the-instruction-memory-module)
+		- [4.1.3. Integration Test Bench](#413-integration-test-bench)
+  	- [4.2. `ID` Stage](#42-id-stage-tests)
+		- [4.2.1. Test Bench for the `Register Bank` Module](#421-test-bench-for-the-register-bank-module)
+		- [4.2.2. Test Bench for the `Main Control` Module](#422-test-bench-for-the-main-control-module)
+		- [4.2.3. Integration Test Bench](#423-integration-test-bench)
+  	- [4.3. `EX` Stage](#43-ex-stage-tests)
+		- [4.3.1. Test Bench for the `ALU` Module](#431-test-bench-for-the-alu-module)
+		- [4.3.2. Test Bench for the `ALU Control` Module](#432-test-bench-for-the-alu-control-module)
+		- [4.3.3. Integration Test Bench](#433-integration-test-bench)
+  	- [4.4. `MEM` Stage](#44-mem-stage-tests)
+		- [4.4.1. Test Bench for the `Data Memory` Module](#441-test-bench-for-the-data-memory-module)
+		- [4.4.2. Integration Test Bench](#442-integration-test-bench)
+  	- [4.5. `WB` Stage](#45-wb-stage-tests)
+		- [4.5.1. Integration Test Bench](#451-integration-test-bench)
+	- [4.6. `Hazards Units` Tests](#46-hazards-units-tests)
+		- [4.6.1. Test Bench for the `Short Circuit` Module](#461-test-bench-for-the-short-circuit-module)
+		- [4.6.2. Test Bench for the `Risk Detection` Module](#462-test-bench-for-the-risk-detection-module)
+	- [4.7. Other Tests](#47-other-tests)
+	- [4.8. MIPS Integration Test](#48-mips-integration-test)
+		- [4.8.1. Annex 1: Test Programs](#481-annex-1-test-programs) 
+			- [4.8.1.1. Program 1](#4811-program-1)
+			- [4.8.1.2. Program 2](#4812-program-2)
+			- [4.8.1.3. Program 3](#4813-program-3)
+		- [4.8.2. Annex 2: Execution Results](#482-annex-2-execution-results)
+			- [4.8.2.1. Program 1 Execution](#4821-program-1-execution)
+			- [4.8.2.2. Program 2 Execution](#4822-program-2-execution)
+			- [4.8.2.3. Program 3 Execution](#4823-program-3-execution)
+	- [4.9. System Test](#49-system-test)
+- [5. Results](#5-results)
+   - [5.1. Program 1](#51-program-1)
+   - [5.2. Program 2](#52-program-2)
+   - [5.3. Program 3](#53-program-3)
+- [6. References](#6-references)
+  
+## How to use this repository?
 
-### 1. Clonar el repositorio
-El repositorio se puede clonar utilizando el comando `git clone`:
+### 1. Clone the repository
+The repository can be cloned using the `git clone` command:
 
 ```bash
 git clone https://github.com/francobottini99/MIPSFPGA-2023.git
 ```
 
-### 2. Crear un nuevo proyecto en Vivado
-Para crear un nuevo proyecto en Vivado, se debe abrir el software y seleccionar la opción `Create Project` en la ventana de inicio. Luego, se debe ingresar un nombre para el proyecto y seleccionar la ubicación donde se guardará. Posteriormente, se debe seleccionar la opción `RTL Project` y la opción `Do not specify sources at this time`. Finalmente, se debe seleccionar la placa de desarrollo `Basys 3` y la opción `Verilog` como lenguaje de descripción de hardware. Con esto debería crearse un nuevo proyecto vacío.
+### 2. Create a new project in Vivado
+To create a new project in Vivado, open the software and select the `Create Project` option in the start window. Then, enter a name for the project and select the location where it will be saved. Next, select the `RTL Project` option and the `Do not specify sources at this time` option. Finally, select the `Basys 3` development board and `Verilog` as the hardware description language. This will create a new empty project.
 
 > [!WARNING]
-> Se resalta la necesidad de seleccionar la opcion `Do not specify sources at this time`.
+> It is important to select the option `Do not specify sources at this time`.
 
-### 3. Agregar los archivos del proyecto
-Para agregar los archivos del proyecto, se debe hacer click derecho sobre la carpeta `Sources` del proyecto y seleccionar la opción `Add Sources`. Luego, se debe seleccionar la opción `Add or create design sources` y la opción `Add Directiries`. Finalmente, se deben seleccionar el directorio `vivado.src/sources` del repositorio clonado. Repetir proceso para el directorio `vivado.src/constrs` y el directorio `vivado.src/sim`.
+### 3. Add the project files
+To add the project files, right-click on the `Sources` folder in the project and select the `Add Sources` option. Then, select the `Add or create design sources` option and the `Add Directories` option. Finally, select the `vivado.src/sources` directory from the cloned repository. Repeat this process for the `vivado.src/constrs` directory and the `vivado.src/sim` directory.
 
-### 4. Generar el bitstream
-Generar el bitstream del proyecto utilizando la opción `Generate Bitstream` del menú `Flow Navigator`.
+### 4. Generate the bitstream
+Generate the bitstream of the project using the `Generate Bitstream` option from the `Flow Navigator` menu.
 
-### 5. Programar la FPGA
-Conectar la placa de desarrollo a la computadora y programar la FPGA utilizando la opción `Program Device` del menú `Flow Navigator`.
+### 5. Program the FPGA
+Connect the development board to the computer and program the FPGA using the `Program Device` option from the `Flow Navigator` menu.
 
-### 6. Ejectuar la aplicación de usuario
-Para operar el procesador, se utiliza la aplicación `python.src/app.py`. Para ejecutar la aplicación, se debe abrir una terminal en el directorio `python.src` y ejecutar el comando `py app.py`.
+### 6. Run the user application
+To operate the processor, use the `python.src/app.py` application. To run the application, open a terminal in the `python.src` directory and execute the command `py app.py`.
 
-## ¿ Cómo usar la aplicación de usuario ?
+## How to use the user application?
 
-La aplicación de usuario se ejecuta en una terminal y permite interactuar con el procesador. Para ejecutar la aplicación, se debe abrir una terminal en el directorio `python.src` y ejecutar el comando `py Api.py`. La primera ventana que se muestra es la siguiente:
-
-<p align="center">
-  <img src="imgs/Api_Port_Select.png" alt="Procesador MIPS Segmentado">
-</p>
-
-En esta ventana se debe seleccionar el puerto serial al que está conectada la placa de desarrollo. Si la conexión se establece correctamente, se muestra la siguiente ventana:
+The user application runs in a terminal and allows interaction with the processor. To run the application, open a terminal in the `python.src` directory and execute the command `py Api.py`. The first window displayed is as follows:
 
 <p align="center">
-  <img src="imgs/Api_Baudrate_Select.png" alt="Procesador MIPS Segmentado">
+  <img src="imgs/Api_Port_Select.png" alt="MIPS Segmented Processor">
 </p>
 
-Esta ventana permite seleccionar la velocidad de transmisión de datos. Se debe seleccionar la misma velocidad que se utilizó para programar la FPGA. Si la velocidad se selecciona correctamente, se muestra el menú principal de la aplicación:
+In this window, you must select the serial port to which the development board is connected. If the connection is established correctly, the following window will appear:
 
 <p align="center">
-  <img src="imgs/Api_Main_Menu.png" alt="Procesador MIPS Segmentado">
+  <img src="imgs/Api_Baudrate_Select.png" alt="MIPS Segmented Processor">
 </p>
 
-Este menú permite seleccionar una de las siguientes opciones:
+This window allows you to select the data transmission speed. You must select the same speed used to program the FPGA. If the speed is selected correctly, the main menu of the application will appear:
 
-   - `1`: Carcar un programa en la memoria de instrucciones.
-   - `2`: Ejecutar el programa cargado en la memoria de instrucciones.
-   - `3`: Ejecutar el programa cargado en la memoria de instrucciones paso a paso.
-   - `4`: Ejecutar el programa cargado en la memoria de instrucciones en modo debug.
-   - `5`: Elimitar el programa cargado en la memoria de instrucciones.
-   - `6`: Salir de la aplicación.
+<p align="center">
+  <img src="imgs/Api_Main_Menu.png" alt="MIPS Segmented Processor">
+</p>
+
+This menu allows you to choose from the following options:
+
+   - `1`: Load a program into the instruction memory.
+   - `2`: Run the program loaded in the instruction memory.
+   - `3`: Run the program loaded in the instruction memory step by step.
+   - `4`: Run the program loaded in the instruction memory in debug mode.
+   - `5`: Delete the program loaded in the instruction memory.
+   - `6`: Exit the application.
 
 > [!NOTE]
-> Por defecto, la placa de desarrollo se conecta a un puerto serial con una velocidad de transmisión de datos de 19200 baudios.
+> By default, the development board connects to a serial port with a data transmission speed of 19200 baud.
 
-### 1. Cargar un programa en la memoria de instrucciones
-
-<p align="center">
-  <img src="imgs/Api_Path_Input.png" alt="Cargar Programa">
-</p>
-
-Esta opción permite cargar un programa en la memoria de instrucciones. Para ello, se debe ingresar el nombre del archivo que contiene el programa. El programa debe estar escrito en lenguaje ensamblador MIPS. El progrma selecciona es compilado y cargado en la memoria de instrucciones. Si el programa se carga correctamente, se muestra el resultado de la compilación y un mensaje de operación exitosa:
+### 1. Load a program into instruction memory
 
 <p align="center">
-  <img src="imgs/Api_Load_Result.png" alt="Resultado de Carga">
+  <img src="imgs/Api_Path_Input.png" alt="Load Program">
 </p>
 
-### 2. Ejecutar el programa cargado en la memoria de instrucciones
-
-Esta opción permite ejecutar el programa cargado en la memoria de instrucciones. Si el programa se ejecuta correctamente, se muestra el estado final de los registros y de la memoria de datos:
+This option allows you to load a program into the instruction memory. To do so, you must enter the name of the file containing the program. The program must be written in MIPS assembly language. The selected program is compiled and loaded into the instruction memory. If the program loads correctly, the compilation result and a success message will be displayed:
 
 <p align="center">
-  <img src="imgs/Api_Execute_Program_2.png" alt="Ejecución Completa">
+  <img src="imgs/Api_Load_Result.png" alt="Load Result">
 </p>
 
-### 3. Ejecutar el programa cargado en la memoria de instrucciones paso a paso
+### 2. Run the loaded program in instruction memory
 
-Esta opción permite ejecutar el programa cargado en la memoria de instrucciones paso a paso. En cada paso se muestra el estado de los registros y de la memoria de datos: 
+This option allows you to run the program loaded in the instruction memory. If the program runs successfully, the final state of the registers and data memory will be displayed:
 
 <p align="center">
-  <img src="imgs/Api_Execution_Step.png" alt="Paso a Paso">
+  <img src="imgs/Api_Execute_Program_2.png" alt="Complete Execution">
 </p>
 
-Se puede avanzar al siguiente paso ingresando la letra `N` y presionando la tecla `Enter`. Para salir del modo paso a paso, se debe ingresar la letra `S` y presionar la tecla `Enter`.
+### 3. Run the loaded program in instruction memory step-by-step
 
-### 4. Ejecutar el programa cargado en la memoria de instrucciones en modo debug
-
-Esta opción permite ejecutar el programa cargado en la memoria de instrucciones en modo debug. En este modo, se muestra la evolución del estado de los registros y de la memoria a lo largo de la ejecución completa del programa:
+This option allows you to run the program loaded in the instruction memory step by step. In each step, the state of the registers and data memory is displayed:
 
 <p align="center">
-  <img src="imgs/Api_Execute_Debug.png" alt="Modo Debug">
+  <img src="imgs/Api_Execution_Step.png" alt="Step by Step">
 </p>
 
-### 5. Eliminar el programa cargado en la memoria de instrucciones
+You can move to the next step by entering the letter `N` and pressing `Enter`. To exit step-by-step mode, enter the letter `S` and press `Enter`.
 
-Esta opción permite eliminar el programa cargado en la memoria de instrucciones. Si el programa se elimina correctamente, se muestra un mensaje de operación exitosa:
+### 4. Run the loaded program in instruction memory in debug mode
+
+This option allows you to run the program loaded in the instruction memory in debug mode. In this mode, the evolution of the state of the registers and memory is shown throughout the full execution of the program:
 
 <p align="center">
-  <img src="imgs/Api_Delete_Program.png" alt="Eliminar Programa">
+  <img src="imgs/Api_Execute_Debug.png" alt="Debug Mode">
 </p>
 
-### 6. Salir de la aplicación
+### 5. Delete the loaded program in instruction memory
 
-Esta opción permite salir de la aplicación. También es posible salir de la aplicación desde cualquier menú con la combinación de teclas `Ctrl + C`.
+This option allows you to delete the program loaded in the instruction memory. If the program is deleted successfully, a success message will be displayed:
 
-## 1. Resumen
-Este trabajo se desarrolló en el marco de la materia Arquitectura de Computadoras de la carrera Ingeniería en Computación de la Facultad de Ciencias Exactas, Físicas y Naturales de la Universidad Nacional de Córdoba. Consiste en la implementación de una versión simplificada de un procesador **MIPS** segmentado en una placa de desarrollo **FPGA**.
+<p align="center">
+  <img src="imgs/Api_Delete_Program.png" alt="Delete Program">
+</p>
 
-Un procesador [MIPS (*Microprocessor without Interlocked Pipeline Stages*)](https://es.wikipedia.org/wiki/MIPS_(procesador)) es un tipo de microprocesador de 32 bits que utiliza una arquitectura de conjunto de instrucciones reducidas (RISC). Esta arquitectura se caracteriza por su simplicidad, ya que utiliza un número reducido de instrucciones de tamaño fijo que se ejecutan en un solo ciclo de reloj.
+### 6. Exit the application
 
-El diseño segmentado, también conocido como diseño de tubería o ["*pipeline*"](https://es.wikipedia.org/wiki/Segmentaci%C3%B3n_(electr%C3%B3nica)), es una técnica que permite la ejecución simultánea de varias instrucciones en diferentes etapas de procesamiento. Esto aumenta la eficiencia y el rendimiento del procesador.
+This option allows you to exit the application. You can also exit the application from any menu using the key combination `Ctrl + C`.
 
-En este proyecto, se implementará el procesador **MIPS** en una [FPGA (Field Programmable Gate Array)](), un dispositivo semiconductor que se puede programar para realizar una amplia variedad de tareas de procesamiento digital. La versión simplificada del procesador **MIPS** se diseñó para facilitar su comprensión y su implementación en la **FPGA**.
+## 1. Summary
+This work was developed as part of the Computer Architecture course in the Computer Engineering program at the Faculty of Exact, Physical, and Natural Sciences of the National University of Córdoba. It involves the implementation of a simplified version of a segmented **MIPS** processor on a **FPGA** development board.
+
+A [MIPS (*Microprocessor without Interlocked Pipeline Stages*)](https://en.wikipedia.org/wiki/MIPS_(processor)) processor is a type of 32-bit microprocessor that uses a reduced instruction set computer (RISC) architecture. This architecture is characterized by its simplicity, using a small number of fixed-size instructions that execute in a single clock cycle.
+
+The segmented design, also known as pipelined design or ["*pipeline*"](https://en.wikipedia.org/wiki/Pipeline_(electronics)), is a technique that allows multiple instructions to be executed simultaneously in different processing stages. This increases the efficiency and performance of the processor.
+
+In this project, the **MIPS** processor will be implemented on an [FPGA (Field Programmable Gate Array)](https://en.wikipedia.org/wiki/Field-programmable_gate_array), a semiconductor device that can be programmed to perform a wide variety of digital processing tasks. The simplified version of the **MIPS** processor was designed to facilitate its understanding and implementation on the **FPGA**.
 
 > [!NOTE]
-> El proyecto se desarrolló en el lenguaje de descripción de hardware [Verilog](https://es.wikipedia.org/wiki/Verilog) utilizando el software [Vivado](https://www.xilinx.com/products/design-tools/vivado.html) de la empresa [Xilinx](https://www.xilinx.com/). El procesador **MIPS** se implementó en la placa de desarrollo **FPGA** [Basys 3](https://digilent.com/reference/programmable-logic/basys-3/start) de la empresa [Digilent](https://digilent.com/).
+> The project was developed in the hardware description language [Verilog](https://en.wikipedia.org/wiki/Verilog) using [Vivado](https://www.xilinx.com/products/design-tools/vivado.html) software from [Xilinx](https://www.xilinx.com/). The **MIPS** processor was implemented on the **FPGA** development board [Basys 3](https://digilent.com/reference/programmable-logic/basys-3/start) from [Digilent](https://digilent.com/).
 
+## 2. Processor Specifications
+The **MIPS** processor implements a 5-stage pipeline, with each stage executing in one clock cycle. The stages are as follows:
 
-## 2. Especificaciones del Procesador
-El procesador **MIPS** implementa un *pipeline* de 5 etapas, cada una de las cuales se ejecuta en un ciclo de reloj. Las etapas son las siguientes:
+1. **IF (Instruction Fetch)**: The instruction is fetched from the instruction memory.
+2. **ID (Instruction Decode)**: The instruction is decoded, and the registers are read.
+3. **EX (Execute)**: The instruction is executed.
+4. **MEM (Memory Access)**: Data is accessed from memory.
+5. **WB (Write Back)**: The results are written back to the registers.
 
-1. **IF (Instruction Fetch)**: Se lee la instrucción de la memoria de instrucciones.
-2. **ID (Instruction Decode)**: Se decodifica la instrucción y se leen los registros.
-3. **EX (Execute)**: Se ejecuta la instrucción.
-4. **MEM (Memory Access)**: Se accede a la memoria de datos.
-5. **WB (Write Back)**: Se escriben los resultados en los registros.
+The execution pipeline supports the following subset of **MIPS IV** instructions:
 
-El pipeline de ejecución soporta el siguiente subconjunto de instrucciones del procesador **MIPS IV**:
-
-| Instrucción | Descripción | Formato | resultado | Tipo | 
-| ----------- | ----------- | ----------- | ----------- | ----------- |
+| Instruction | Description | Format | Result | Type |
+| ----------- | ----------- | ------- | ------ | ----- |
 | `sll` | Shift left logical | `sll $rd, $rt, shamt` | `$rd = $rt << shamt` | R |
 | `srl` | Shift right logical | `srl $rd, $rt, shamt` | `$rd = $rt >> shamt` | R |
 | `sra` | Shift right arithmetic | `sra $rd, $rt, shamt` | `$rd = $rt >> shamt` | R |
@@ -252,139 +251,135 @@ El pipeline de ejecución soporta el siguiente subconjunto de instrucciones del 
 | `jr` | Jump register | `jr $rs` | `PC = $rs` | J |
 | `jalr` | Jump and link register | `jalr $rs` | `$ra = PC + 4; PC = $rs` | J |
 
-Además, el procesador implementado detecta y elimina los riesgos estructurales, de datos y de control. Estos son:
+Additionally, the implemented processor detects and eliminates structural, data, and control hazards. These are:
 
-- **Riesgos estructurales**: Se producen cuando dos instrucciones intentan acceder al mismo recurso al mismo tiempo.
+- **Structural hazards**: Occur when two instructions attempt to access the same resource simultaneously.
+- **Data hazards**: Occur when one instruction depends on the result of another instruction that has not yet completed.
+- **Control hazards**: Occur when a conditional jump instruction alters the program's execution flow.
 
-- **Riesgos de datos**: Se producen cuando una instrucción depende del resultado de otra instrucción que aún no se ha completado.
+To resolve these hazards, the following techniques were implemented:
 
-- **Riesgos de control**: Se producen cuando una instrucción de salto condicional cambia el flujo de ejecución del programa.
+- **Forwarding**: Used to resolve data hazards. It involves forwarding the result of an instruction to an earlier pipeline stage so that another instruction can use it.
+- **Stalling**: Used to resolve data and control hazards. It involves halting the progress of the pipeline until the hazard is resolved.
 
-Para subsanar estos riesgos, se implementaron las siguientes técnicas:
+## 3. Development
 
-- **Forwarding**: Se utiliza para resolver los riesgos de datos. Consiste en enviar el resultado de una instrucción a una etapa anterior del *pipeline* para que pueda ser utilizado por otra instrucción.
-
-- **Stalling**: Se utiliza para resolver los riesgos de datos y de control. Consiste en detener el avance del *pipeline* hasta que se resuelva el riesgo.
-
-## 3. Desarrollo
-
-### 3.1. Arquitectura del Procesador
-La arquitectura del procesador **MIPS** segmentado se muestra en la siguiente figura:
+### 3.1. Processor Architecture
+The architecture of the segmented **MIPS** processor is shown in the following figure:
 
 <p align="center">
-  <img src="imgs/MIPS_Diagram.png" alt="Procesador MIPS Segmentado">
+  <img src="imgs/MIPS_Diagram.png" alt="Segmented MIPS Processor">
 </p>
 
-### 3.2. Etapas del Pipeline
-El *pipeline* se implementa a través de los modulos `if_id`, `id_ex`, `ex_mem` y `mem_wb` que se encargan de interconectar las distintas etapas de procesamiento. Estas etapas son:
+### 3.2. Pipeline Stages
+The *pipeline* is implemented through the modules `if_id`, `id_ex`, `ex_mem`, and `mem_wb`, which are responsible for interconnecting the various processing stages. These stages are:
 
-#### 3.2.1. Etapa `IF`
+#### 3.2.1. Stage `IF`
 
 <p align="center">
   <img src="imgs/Etapa_IF.png" alt="Instruction Fetch">
 </p>
 
-La etapa **IF** (*Instruction Fetch*) es la primera etapa del pipeline en un procesador MIPS. En esta etapa, se recupera la instrucción a ejecutar de la memoria de instrucciones. 
+The **IF** (*Instruction Fetch*) stage is the first stage in the pipeline of a MIPS processor. In this stage, the instruction to be executed is fetched from the instruction memory.
 
-El módulo `_if` en el código Verilog representa esta etapa. Este módulo tiene varias entradas y salidas que permiten su interacción con otras etapas del pipeline y con la memoria de instrucciones.
+The `_if` module in the Verilog code represents this stage. This module has several inputs and outputs that allow it to interact with other pipeline stages and the instruction memory.
 
-Las entradas del módulo incluyen señales de control como `i_clk` (la señal de reloj), `i_reset` (para reiniciar el módulo), `i_halt` (para detener la ejecución), `i_not_load` (para indicar si se debe cargar una instrucción), `i_enable` (para habilitar el módulo), y `i_next_pc_src` (para seleccionar la fuente del próximo contador de programa o PC). También incluye entradas para la instrucción a escribir en la memoria (`i_instruction`), y los valores del próximo PC secuencial (`i_next_seq_pc`) y no secuencial (`i_next_not_seq_pc`).
+The module inputs include control signals such as `i_clk` (the clock signal), `i_reset` (to reset the module), `i_halt` (to halt execution), `i_not_load` (to indicate whether an instruction should be loaded), `i_enable` (to enable the module), and `i_next_pc_src` (to select the source of the next program counter or PC). It also includes inputs for the instruction to be written to memory (`i_instruction`), and the values of the next sequential PC (`i_next_seq_pc`) and non-sequential PC (`i_next_not_seq_pc`).
 
-Las salidas del módulo incluyen señales que indican si la memoria de instrucciones está llena (`o_full_mem`) o vacía (`o_empty_mem`), la instrucción recuperada de la memoria (`o_instruction`), y el valor del próximo PC secuencial (`o_next_seq_pc`).
+The module outputs include signals indicating whether the instruction memory is full (`o_full_mem`) or empty (`o_empty_mem`), the instruction fetched from memory (`o_instruction`), and the value of the next sequential PC (`o_next_seq_pc`).
 
-Dentro del módulo, se utilizan varios componentes para realizar las operaciones necesarias. Estos incluyen un multiplexor (`mux_2_unit_pc`) para seleccionar el próximo PC, un sumador (`adder_unit`) para calcular el próximo PC secuencial, un módulo PC (`pc_unit`) para mantener y actualizar el valor del PC, y una memoria de instrucciones (`instruction_memory_unit`) para almacenar y recuperar las instrucciones a ejecutar.
+Inside the module, various components are used to perform the necessary operations. These include a multiplexer (`mux_2_unit_pc`) to select the next PC, an adder (`adder_unit`) to calculate the next sequential PC, a PC module (`pc_unit`) to maintain and update the PC value, and an instruction memory unit (`instruction_memory_unit`) to store and retrieve the instructions to be executed.
 
-#### 3.2.2. Etapa `ID`
+#### 3.2.2. Stage `ID`
 
 <p align="center">
   <img src="imgs/Etapa_ID.png" alt="Instruction Decode">
 </p>
 
-La etapa ID (Instruction Decode) es la segunda etapa del pipeline. En esta etapa, la instrucción recuperada de la memoria de instrucciones se decodifica y se leen los valores de los registros necesarios para su ejecución.
+The **ID** (*Instruction Decode*) stage is the second stage in the pipeline. In this stage, the instruction fetched from the instruction memory is decoded, and the necessary register values are read for execution.
 
-El módulo `_id` en el código Verilog representa esta etapa. Este módulo tiene varias entradas y salidas que permiten su interacción con otras etapas del pipeline y con el banco de registros.
+The `_id` module in the Verilog code represents this stage. This module has several inputs and outputs that allow it to interact with other pipeline stages and the register bank.
 
-Las entradas del módulo incluyen señales de control como `i_clk` (la señal de reloj), `i_reset` (para reiniciar el módulo), `i_flush` (para limpiar el banco de registros), `i_reg_write_enable` (para habilitar la escritura en el banco de registros), y `i_ctr_reg_src` (para seleccionar la fuente del registro de control). También incluye entradas para la instrucción a decodificar (`i_instruction`), los valores de los buses A y B de la etapa EX (`i_ex_bus_a` y `i_ex_bus_b`), y el valor del próximo PC secuencial (`i_next_seq_pc`).
+The module inputs include control signals such as `i_clk` (the clock signal), `i_reset` (to reset the module), `i_flush` (to flush the register bank), `i_reg_write_enable` (to enable writing to the register bank), and `i_ctr_reg_src` (to select the control register source). It also includes inputs for the instruction to decode (`i_instruction`), the values of the EX stage A and B buses (`i_ex_bus_a` and `i_ex_bus_b`), and the value of the next sequential PC (`i_next_seq_pc`).
 
-Las salidas del módulo incluyen señales de control que determinan el comportamiento de las etapas posteriores del pipeline, como `o_next_pc_src`, `o_mem_rd_src`, `o_mem_wr_src`, `o_mem_write`, `o_wb`, `o_mem_to_reg`, `o_reg_dst`, `o_alu_src_a`, `o_alu_src_b`, y `o_alu_op`. También incluye salidas para los valores decodificados de varios campos de la instrucción, como `o_rs`, `o_rt`, `o_rd`, `o_funct`, `o_op`, `o_shamt_ext_unsigned`, `o_inm_ext_signed`, `o_inm_upp`, `o_inm_ext_unsigned`, y los valores de los buses A y B para la etapa EX (`o_bus_a` y `o_bus_b`).
+The module outputs include control signals that determine the behavior of the subsequent pipeline stages, such as `o_next_pc_src`, `o_mem_rd_src`, `o_mem_wr_src`, `o_mem_write`, `o_wb`, `o_mem_to_reg`, `o_reg_dst`, `o_alu_src_a`, `o_alu_src_b`, and `o_alu_op`. It also includes outputs for the decoded values of various instruction fields, such as `o_rs`, `o_rt`, `o_rd`, `o_funct`, `o_op`, `o_shamt_ext_unsigned`, `o_inm_ext_signed`, `o_inm_upp`, `o_inm_ext_unsigned`, and the A and B buses values for the EX stage (`o_bus_a` and `o_bus_b`).
 
-Dentro del módulo, se utilizan varios componentes para realizar las operaciones necesarias. Estos incluyen un banco de registros para almacenar los valores de los registros, y varios multiplexores y decodificadores para decodificar la instrucción y generar las señales de control para las etapas posteriores del pipeline.
+Inside the module, various components are used to perform the necessary operations. These include a register bank to store the values of the registers, and several multiplexers and decoders to decode the instruction and generate the control signals for subsequent pipeline stages.
 
-#### 3.2.3. Etapa `EX`
+#### 3.2.3. Stage `EX`
 
 <p align="center">
   <img src="imgs/Etapa_EX.png" alt="Execution">
 </p>
 
-La etapa EX (Execution) es la tercera etapa del pipeline en el procesador MIPS. En esta etapa, se realizan las operaciones aritméticas y lógicas especificadas por la instrucción decodificada.
+The **EX** (*Execution*) stage is the third stage in the MIPS pipeline. In this stage, the arithmetic and logical operations specified by the decoded instruction are performed.
 
-El módulo `_ex` en el código Verilog representa esta etapa. Este módulo tiene varias entradas y salidas que permiten su interacción con otras etapas del pipeline.
+The `_ex` module in the Verilog code represents this stage. This module has several inputs and outputs that allow it to interact with other pipeline stages.
 
-Las entradas del módulo incluyen señales de control como `i_alu_src_a`, `i_alu_src_b`, `i_reg_dst`, `i_alu_op`, `i_sc_src_a`, `i_sc_src_b`, `i_rt`, `i_rd`, `i_funct`, y buses de datos como `i_sc_alu_result`, `i_sc_wb_result`, `i_bus_a`, `i_bus_b`, `i_shamt_ext_unsigned`, `i_inm_ext_signed`, `i_inm_upp`, `i_inm_ext_unsigned`, `i_next_seq_pc`.
+The module inputs include control signals such as `i_alu_src_a`, `i_alu_src_b`, `i_reg_dst`, `i_alu_op`, `i_sc_src_a`, `i_sc_src_b`, `i_rt`, `i_rd`, `i_funct`, and data buses like `i_sc_alu_result`, `i_sc_wb_result`, `i_bus_a`, `i_bus_b`, `i_shamt_ext_unsigned`, `i_inm_ext_signed`, `i_inm_upp`, `i_inm_ext_unsigned`, `i_next_seq_pc`.
 
-Las salidas del módulo incluyen `o_wb_addr`, `o_alu_result`, `o_sc_bus_b`, `o_sc_bus_a`.
+The module outputs include `o_wb_addr`, `o_alu_result`, `o_sc_bus_b`, `o_sc_bus_a`.
 
-Dentro del módulo, se utilizan varios componentes para realizar las operaciones necesarias. Estos incluyen una unidad ALU (`alu_unit`) para realizar las operaciones aritméticas y lógicas, una unidad de control ALU (`alu_control_unit`) para generar las señales de control para la ALU, y varios multiplexores (`mux_alu_src_data_a_unit`, `mux_alu_src_data_b_unit`, `mux_sc_src_a_unit`, `mux_sc_src_b_unit`, `mux_reg_dst_unit`) para seleccionar los datos de entrada para la ALU y la dirección del registro de destino para la etapa WB.
+Inside the module, various components are used to perform the necessary operations. These include an ALU unit (`alu_unit`) to perform arithmetic and logical operations, an ALU control unit (`alu_control_unit`) to generate the control signals for the ALU, and several multiplexers (`mux_alu_src_data_a_unit`, `mux_alu_src_data_b_unit`, `mux_sc_src_a_unit`, `mux_sc_src_b_unit`, `mux_reg_dst_unit`) to select the input data for the ALU and the destination register address for the WB stage.
 
-#### 3.2.4. Etapa `MEM`
+#### 3.2.4. Stage `MEM`
 
 <p align="center">
   <img src="imgs/Etapa_MEM.png" alt="Memory">
 </p>
 
-La etapa MEM (Memory) es la cuarta etapa del pipeline en el procesador MIPS. En esta etapa, si la instrucción es una operación de carga o almacenamiento, se accede a la memoria de datos.
+The **MEM** (*Memory*) stage is the fourth stage in the MIPS pipeline. In this stage, if the instruction is a load or store operation, data is accessed from the data memory.
 
-El módulo `mem` en el código Verilog representa esta etapa. Este módulo tiene varias entradas y salidas que permiten su interacción con otras etapas del pipeline y con la memoria de datos.
+The `mem` module in the Verilog code represents this stage. This module has several inputs and outputs that allow it to interact with other pipeline stages and the data memory.
 
-Las entradas del módulo incluyen señales de control como `i_clk` (la señal de reloj), `i_reset` (para reiniciar el módulo), `i_flush` (para limpiar la memoria de datos), `i_mem_wr_rd` (para indicar si se debe realizar una operación de escritura o lectura en la memoria), `i_mem_wr_src` (para seleccionar la fuente de los datos a escribir en la memoria), `i_mem_rd_src` (para seleccionar cómo se deben leer los datos de la memoria), y `i_mem_addr` (la dirección de la memoria a la que se debe acceder). También incluye una entrada para los datos a escribir en la memoria (`i_bus_b`).
+The module inputs include control signals such as `i_clk` (the clock signal), `i_reset` (to reset the module), `i_flush` (to flush the data memory), `i_mem_wr_rd` (to indicate whether to perform a write or read operation on memory), `i_mem_wr_src` (to select the data source for memory write), `i_mem_rd_src` (to select how to read data from memory), and `i_mem_addr` (the address to access in memory). It also includes an input for the data to write to memory (`i_bus_b`).
 
-Las salidas del módulo incluyen `o_mem_rd` (los datos leídos de la memoria) y `o_bus_debug` (un bus para depuración que contiene todos los datos de la memoria).
+The module outputs include `o_mem_rd` (the data read from memory) and `o_bus_debug` (a debug bus containing all the data from memory).
 
-Dentro del módulo, se utilizan varios componentes para realizar las operaciones necesarias. Estos incluyen una instancia de un módulo `data_memory` para representar la memoria de datos, varios multiplexores (`mux_in_mem_unit`, `mux_out_mem_unit`) para seleccionar los datos a escribir en la memoria y cómo se deben leer los datos de la memoria, y varias instancias de módulos `unsig_extend` y `sig_extend` para extender los datos leídos de la memoria a la longitud correcta, ya sea con extensión de signo o sin ella.
+Inside the module, various components are used to perform the necessary operations. These include an instance of a `data_memory` module to represent the data memory, several multiplexers (`mux_in_mem_unit`, `mux_out_mem_unit`) to select the data to write to memory and how to read data from memory, and instances of `unsig_extend` and `sig_extend` modules to extend the data read from memory to the correct length, either with sign extension or without it.
 
-#### 3.2.5. Etapa `WB`
+#### 3.2.5. Stage `WB`
 
 <p align="center">
-  <img src="imgs/Etapa_WB.png" alt="Memory">
+  <img src="imgs/Etapa_WB.png" alt="Write Back">
 </p>
 
-La etapa WB (Write Back) es la quinta y última etapa del pipeline en el procesador. En esta etapa, los resultados de la ejecución de la instrucción se escriben de vuelta en los registros.
+The **WB** (*Write Back*) stage is the fifth and final stage in the pipeline of the processor. In this stage, the results of the instruction execution are written back to the registers.
 
-El módulo `wb` en el código Verilog representa esta etapa. Este módulo tiene varias entradas y una salida que permiten su interacción con otras etapas del pipeline.
+The `wb` module in the Verilog code represents this stage. This module has several inputs and one output that allow it to interact with other pipeline stages.
 
-Las entradas del módulo incluyen `i_mem_to_reg` (una señal de control que indica si el resultado de la operación de memoria debe ser escrito en los registros), `i_alu_result` (el resultado de la operación de la ALU) e `i_mem_result` (el resultado de la operación de memoria).
+The module inputs include `i_mem_to_reg` (a control signal indicating whether the result from the memory operation should be written to the registers), `i_alu_result` (the result from the ALU operation), and `i_mem_result` (the result from the memory operation).
 
-La salida del módulo es `o_wb_data` (los datos que se deben escribir en los registros).
+The output of the module is `o_wb_data` (the data to be written to the registers).
 
-Dentro del módulo, se utiliza un multiplexor (`mux_wb_data`) para seleccionar entre `i_alu_result` e `i_mem_result` en función de la señal `i_mem_to_reg`. El resultado de esta selección se envía a la salida `o_wb_data`.
+Inside the module, a multiplexer (`mux_wb_data`) is used to select between `i_alu_result` and `i_mem_result` based on the `i_mem_to_reg` signal. The result of this selection is sent to the output `o_wb_data`.
 
+### 3.3. Control and Hazard Detection
+Control and hazard detection in the processor are implemented through the following modules:
 
-### 3.3. Control y Detención de Riesgos
-El control y la detención de riesgos en el procesador se implementan a través de los siguientes módulos:
-
-#### 3.3.1. Unidad de Control Principal
+#### 3.3.1. Main Control Unit
 
 <p align="center">
   <img src="imgs/Main_Control.png" alt="Main Control">
 </p>
 
-La unidad de control principal es responsable de generar las señales de control para diversas operaciones en un procesador. La unidad de control toma como entrada varios campos de la instrucción actual, como el código de operación (`i_op`), el código de función (`i_funct`), y señales adicionales como `i_bus_a_not_equal_bus_b` e `i_instruction_is_nop`. A partir de estas entradas, la unidad de control determina el valor de las señales de control que se utilizan para controlar diferentes unidades funcionales del procesador.
+The main control unit is responsible for generating the control signals for various operations in a processor. The control unit takes several fields of the current instruction as input, such as the operation code (`i_op`), the function code (`i_funct`), and additional signals like `i_bus_a_not_equal_bus_b` and `i_instruction_is_nop`. Based on these inputs, the control unit determines the values of the control signals that are used to control different functional units of the processor.
 
-- `next_pc_src`: Controla la fuente del próximo valor del contador de programa (PC).
-- `jmp_ctrl`: Controla el tipo de salto (si es un salto y su dirección).
-- `reg_dst`: Selecciona el destino del resultado de la ALU para escribir en el registro.
-- `alu_src_a` y `alu_src_b`: Seleccionan las fuentes de entrada para la ALU.
-- `code_alu_op`: Especifica la operación de la ALU.
-- `mem_rd_src`: Selecciona la fuente de datos de lectura de memoria.
-- `mem_wr_src`: Selecciona la fuente de datos de escritura en memoria.
-- `mem_write`: Controla si se realiza una operación de escritura en memoria.
-- `wb`: Controla si se habilita la escritura de nuevo valor en el registro.
-- `mem_to_reg`: Controla si el resultado debe escribirse en el registro desde la memoria.
+- `next_pc_src`: Controls the source of the next program counter (PC) value.
+- `jmp_ctrl`: Controls the type of jump (whether it's a jump and its direction).
+- `reg_dst`: Selects the destination of the ALU result to write to the register.
+- `alu_src_a` and `alu_src_b`: Select the input sources for the ALU.
+- `code_alu_op`: Specifies the ALU operation.
+- `mem_rd_src`: Selects the source for memory read data.
+- `mem_wr_src`: Selects the source for memory write data.
+- `mem_write`: Controls whether a memory write operation occurs.
+- `wb`: Controls whether the register should be updated with a new value.
+- `mem_to_reg`: Controls whether the result should be written to the register from memory.
 
-todas estas señales se concentran en el bus `o_ctrl_bus` que se utiliza para controlar las diferentes unidades funcionales del procesador.
+All of these signals are concentrated in the `o_ctrl_bus`, which is used to control the various functional units of the processor.
 
-##### 3.3.1.1. Tabla de Control
-La tabla de verdad de la unidad de control principal se muestra a continuación:
+##### 3.3.1.1. Control Table
+The truth table for the main control unit is shown below:
 
 
 | i_op             | i_funct         | i_bus_a_not_equal_bus_b | i_instruction_is_nop | next_pc_src | jmp_ctrl | reg_dst | alu_src_a          | alu_src_b          | code_alu_op | mem_rd_src         | mem_wr_src         | mem_write | wb   | mem_to_reg         |
@@ -419,24 +414,24 @@ La tabla de verdad de la unidad de control principal se muestra a continuación:
 | `CODE_OP_SH` | `******` | `*` | `0` | `1` | `xx` | `xx` | `1` | `010` | `000` | `xxx` | `01` | `1` | `0` | `x` |
 
 > [!NOTE]
-> Los campos marcados con '*' indican que esos bits pueden tener cualquier valor y no afectan el resultado final. Los campos marcados con 'x' indican el estado indeterminado ya que la señal no se utiliza en esa instrucción.
+> The fields marked with '*' indicate that those bits can have any value and do not affect the final result. The fields marked with 'x' indicate an indeterminate state as the signal is not used in that instruction.
 
-#### 3.3.2. Unidad de Control ALU
+#### 3.3.2. ALU Control Unit
 
 <p align="center">
   <img src="imgs/Alu_Control.png" alt="ALU Control">
 </p>
 
-El módulo `alu_control` en el código Verilog representa la unidad de control de la ALU (Unidad Aritmética Lógica). Esta unidad genera las señales de control para la ALU en función de los códigos de operación y función de la instrucción.
+The `alu_control` module in the Verilog code represents the ALU (Arithmetic Logic Unit) control unit. This unit generates the control signals for the ALU based on the operation and function codes of the instruction.
 
-Las entradas del módulo son `i_funct` (el campo funct de la instrucción, que especifica la operación a realizar en caso de instrucciones de tipo R) e `i_alu_op` (el código de operación de la ALU, que especifica la operación a realizar). Esta ultima viene de la uniadad de control principal.
+The inputs to the module are `i_funct` (the funct field of the instruction, which specifies the operation to perform in the case of R-type instructions) and `i_alu_op` (the ALU operation code, which specifies the operation to perform). The latter comes from the main control unit.
 
-La salida del módulo es `o_alu_ctr` (la señal de control para la ALU, que indica la operación que debe realizar).
+The output of the module is `o_alu_ctr` (the control signal for the ALU, which indicates the operation to be performed).
 
-##### 3.3.2.1. Tabla de Control
-La tabla de verdad de la unidad de control de la ALU se muestra a continuación:
+##### 3.3.2.1. Control Table
+The truth table for the ALU control unit is shown below:
 
-| i_alu_op        | i_funct          | o_alu_ctr | operación |
+| i_alu_op        | i_funct          | o_alu_ctr | operation |
 |-----------------|------------------|-----------|-----------|
 | `CODE_ALU_CTR_R_TYPE` | `CODE_FUNCT_SLL` | `0000` | `b << a` |
 | `CODE_ALU_CTR_R_TYPE` | `CODE_FUNCT_SRL` | `0001` | `b >> a` |
@@ -464,34 +459,34 @@ La tabla de verdad de la unidad de control de la ALU se muestra a continuación:
 | `CODE_ALU_CTR_SLTI` | `******` | `1011` | `$signed(a) < $signed(b)` |
 
 > [!NOTE]
-> Los campos marcados con '*' indican que esos bits pueden tener cualquier valor y no afectan el resultado final. Los campos marcados con 'x' indican el estado indeterminado ya que la señal no se utiliza en esa instrucción.
+> The fields marked with '*' indicate that those bits can have any value and do not affect the final result. The fields marked with 'x' indicate an indeterminate state as the signal is not used in that instruction.
 
-#### 3.3.3. Unidad de Cortocircuito
+#### 3.3.3. Short Circuit Unit
 
 <p align="center">
   <img src="imgs/SC_Unit.png" alt="Short Circuit Unit">
 </p>
 
-El módulo `short_circuit` en el código Verilog representa una unidad de cortocircuito. Esta unidad se utiliza para implementar el adelanto (*forwarding*) de datos, una técnica que ayuda a minimizar los riesgos de datos en el pipeline del procesador.
+The `short_circuit` module in the Verilog code represents a short circuit unit. This unit is used to implement data forwarding, a technique that helps minimize data hazards in the processor's pipeline.
 
-Las entradas del módulo son:
+The inputs to the module are:
 
-- `i_ex_mem_wb` y `i_mem_wb_wb`: Estas señales indican si hay datos válidos en las etapas `EX/MEM` y `MEM/WB` del pipeline, respectivamente.
+- `i_ex_mem_wb` and `i_mem_wb_wb`: These signals indicate whether there are valid data in the `EX/MEM` and `MEM/WB` stages of the pipeline, respectively.
 
-- `i_id_ex_rs` y `i_id_ex_rt`: Estos son los registros fuente de la etapa `ID/EX` del pipeline.
+- `i_id_ex_rs` and `i_id_ex_rt`: These are the source registers from the `ID/EX` stage of the pipeline.
 
-- `i_ex_mem_addr` y `i_mem_wb_addr`: Estas son las direcciones de memoria de las etapas `EX/MEM` y `MEM/WB` del pipeline, respectivamente.
+- `i_ex_mem_addr` and `i_mem_wb_addr`: These are the memory addresses from the `EX/MEM` and `MEM/WB` stages of the pipeline, respectively.
 
-Las salidas del módulo son:
+The outputs of the module are:
 
-- `o_sc_data_a_src` y `o_sc_data_b_src`: Estas señales indican la fuente de los datos para los registros fuente `rs` y `rt`, respectivamente.
+- `o_sc_data_a_src` and `o_sc_data_b_src`: These signals indicate the data source for the source registers `rs` and `rt`, respectively.
 
-La lógica del módulo verifica si las direcciones de memoria de las etapas `EX/MEM` y `MEM/WB` coinciden con los registros fuente de la etapa `ID/EX`. Si es así, y si hay datos válidos en las etapas `EX/MEM` y `MEM/WB`, entonces los datos se adelantan desde estas etapas. Si no, los datos provienen de la etapa `ID/EX`.
+The module logic checks if the memory addresses from the `EX/MEM` and `MEM/WB` stages match the source registers from the `ID/EX` stage. If so, and if valid data exists in the `EX/MEM` and `MEM/WB` stages, the data is forwarded from these stages. If not, the data comes from the `ID/EX` stage.
 
-Esto ayuda a minimizar los riesgos de datos al permitir que las instrucciones utilicen los resultados de las instrucciones anteriores tan pronto como estén disponibles, en lugar de esperar a que las instrucciones anteriores se completen y los resultados se escriban en los registros.
+This helps minimize data hazards by allowing instructions to use the results of previous instructions as soon as they are available, rather than waiting for the previous instructions to complete and for the results to be written back to the registers.
 
-##### 3.3.3.1 Tabla de Control
-La tabla de verdad de la unidad de cortocircuito se muestra a continuación:
+##### 3.3.3.1 Control Table
+The truth table for the short circuit unit is shown below:
 
 | i_ex_mem_wb | i_mem_wb_wb | i_ex_mem_addr == i_id_ex_rs | i_mem_wb_addr == i_id_ex_rs | o_sc_data_a_src |
 |-------------|-------------|-----------------------------|-----------------------------|-----------------|
@@ -506,32 +501,32 @@ La tabla de verdad de la unidad de cortocircuito se muestra a continuación:
 | `0 or -`      | `0 or -`      | `0 or -`                      | `0 or -`                      | `ID_EX`           |
 
 > [!NOTE]
-> En esta tabla, `EX_MEM`, `MEM_WB` e `ID_EX` representan las etapas del pipeline de donde se obtienen los datos. `i_ex_mem_addr == i_id_ex_rs` y `i_ex_mem_addr == i_id_ex_rt` representan comparaciones de igualdad entre las direcciones de memoria y los registros fuente. Si la comparación es verdadera, significa que los datos para el registro fuente correspondiente se pueden obtener de la etapa `EX_MEM`. De manera similar, `i_mem_wb_addr == i_id_ex_rs` y `i_mem_wb_addr == i_id_ex_rt` representan comparaciones de igualdad para la etapa `MEM_WB`.
+> In this table, `EX_MEM`, `MEM_WB`, and `ID_EX` represent the pipeline stages from which the data is obtained. `i_ex_mem_addr == i_id_ex_rs` and `i_ex_mem_addr == i_id_ex_rt` represent equality comparisons between memory addresses and source registers. If the comparison is true, it means that the data for the corresponding source register can be obtained from the `EX_MEM` stage. Similarly, `i_mem_wb_addr == i_id_ex_rs` and `i_mem_wb_addr == i_id_ex_rt` represent equality comparisons for the `MEM_WB` stage.
 
-#### 3.3.4. Unidad de Detención de Riesgos
+#### 3.3.4. Hazard Detection Unit
 
 <p align="center">
   <img src="imgs/Risk_Detection_Unit.png" alt="Risk Detection Unit">
 </p>
 
-El módulo `risk_detection` en el código Verilog representa una unidad de detección de riesgos. Esta unidad se utiliza para detectar y manejar situaciones que podrían causar problemas en el pipeline del procesador, como los riesgos de datos y control.
+The `risk_detection` module in the Verilog code represents a hazard detection unit. This unit is used to detect and handle situations that could cause problems in the processor's pipeline, such as data and control hazards.
 
-Las entradas del módulo son:
+The inputs to the module are:
 
-- `i_jmp_stop`, `i_if_id_rs`, `i_if_id_rd`, `i_if_id_op`, `i_if_id_funct`, `i_id_ex_rt`, `i_id_ex_op`: Estas señales representan varias partes de las instrucciones en las etapas `IF/ID` y `ID/EX` del pipeline, incluyendo los códigos de operación y función, los registros fuente y destino, y una señal que indica si se debe detener el salto.
+- `i_jmp_stop`, `i_if_id_rs`, `i_if_id_rd`, `i_if_id_op`, `i_if_id_funct`, `i_id_ex_rt`, `i_id_ex_op`: These signals represent various parts of the instructions in the `IF/ID` and `ID/EX` stages of the pipeline, including the operation and function codes, the source and destination registers, and a signal indicating if the jump should be stopped.
 
-Las salidas del módulo son:
+The outputs of the module are:
 
-- `o_jmp_stop`: Esta señal se activa si se debe detener el procesador un ciclo debido a un salto, lo cual ocurre si la instrucción en la etapa `IF/ID` es un salto y la señal `i_jmp_stop` no está activa.
-- `o_halt`: Esta señal se activa si la instrucción en la etapa `IF/ID` es una instrucción de finalización de programa.
-- `o_not_load`: Esta señal se activa si la instrucción en la etapa `ID/EX` es una instrucción de carga y el registro destino coincide con uno de los registros fuente de la instrucción en la etapa `IF/ID`, o si la señal `o_jmp_stop` está activa. Esto indica un riesgo de datos.
-- `o_ctr_reg_src`: Esta señal es igual a la señal `o_not_load` y se utiliza para indicar si las señales de control se propagan a las siguientes etapas o no.
+- `o_jmp_stop`: This signal is activated if the processor should stop for one cycle due to a jump, which happens if the instruction in the `IF/ID` stage is a jump and the `i_jmp_stop` signal is not active.
+- `o_halt`: This signal is activated if the instruction in the `IF/ID` stage is a program termination instruction.
+- `o_not_load`: This signal is activated if the instruction in the `ID/EX` stage is a load instruction and the destination register matches one of the source registers of the instruction in the `IF/ID` stage, or if the `o_jmp_stop` signal is active. This indicates a data hazard.
+- `o_ctr_reg_src`: This signal is equal to the `o_not_load` signal and is used to indicate whether the control signals propagate to the next stages or not.
 
-La lógica del módulo verifica las instrucciones en las etapas `IF/ID` y `ID/EX` del *pipeline* y activa las señales de salida correspondientes si detecta un riesgo o si se da una instrucción de salto que haga uso de los registros del procesador (potencial riesgo).
+The module logic checks the instructions in the `IF/ID` and `ID/EX` stages of the pipeline and activates the corresponding output signals if it detects a hazard or if a jump instruction uses processor registers (potential hazard).
 
-##### 3.3.4.1 Tabla de Control
+##### 3.3.4.1 Control Table
 
-La tabla de verdad para la unidad de detección de riesgos se basa en las señales de entrada y determina las señales de salida. Aquí está la tabla de verdad simplificada:
+The truth table for the hazard detection unit is based on the input signals and determines the output signals. Here is the simplified truth table:
 
 | i_jmp_stop | i_if_id_funct == `CODE_FUNCT_JALR` or `CODE_FUNCT_JR` | i_if_id_op == `CODE_OP_R_TYPE` | i_if_id_op == `CODE_OP_BNE` or `CODE_OP_BEQ` | o_jmp_stop |
 |------------|------------------------------------------------------|--------------------------------|---------------------------------------------|------------|
@@ -548,8 +543,9 @@ La tabla de verdad para la unidad de detección de riesgos se basa en las señal
 |----------------------------------------|------------------------------------------------------------------------------------------------------------------|------------|------------|
 | `1`                                      | `1`                                                                                                                  | `-`          | `1`          |
 | `-`                                      | `-`                                                                                                                  | `1`          | `1`          |
-### 3.4. Operación del Procesador
-Para operar el procesador, se debe cargar un programa en la memoria de instrucciones. Luego, se debe iniciar el procesador y ejecutar el programa. El procesador se detendrá automáticamente cuando se ejecute la instrucción `halt`. Para que esto sea posible se implementó un módulo `uart` que permite la comunicación con el procesador a través de una terminal serial y un módulo `debugger` que controla la comunicación entre el procesador y el módulo `uart`.
+
+### 3.4. Processor Operation
+To operate the processor, a program must first be loaded into the instruction memory. Then, the processor must be started to execute the program. The processor will stop automatically when the `halt` instruction is executed. To make this possible, a `uart` module was implemented to allow communication with the processor via a serial terminal, and a `debugger` module controls communication between the processor and the `uart` module.
 
 #### 3.4.1. UART
 
@@ -557,306 +553,290 @@ Para operar el procesador, se debe cargar un programa en la memoria de instrucci
   <img src="imgs/UART.png" alt="UART">
 </p>
 
-Este módulo Verilog define una [UART (Universal Asynchronous Receiver-Transmitter)](https://es.wikipedia.org/wiki/Universal_Asynchronous_Receiver-Transmitter), que es un dispositivo que se utiliza para la comunicación serial asíncrona entre dispositivos digitales.
+This Verilog module defines a [UART (Universal Asynchronous Receiver-Transmitter)](https://en.wikipedia.org/wiki/Universal_Asynchronous_Receiver-Transmitter), which is a device used for asynchronous serial communication between digital devices.
 
-El módulo `uart` tiene varios parámetros configurables, incluyendo el número de bits de datos (`DATA_BITS`), el número de ticks para el bit de inicio (`SB_TICKS`), el bit de precisión de la tasa de baudios (`DVSR_BIT`), el divisor de la tasa de baudios (`DVSR`) y el tamaño de la FIFO (`FIFO_SIZE`).
+The `uart` module has several configurable parameters, including the number of data bits (`DATA_BITS`), the number of ticks for the start bit (`SB_TICKS`), the precision bit for the baud rate (`DVSR_BIT`), the baud rate divisor (`DVSR`), and the FIFO size (`FIFO_SIZE`).
 
-Las entradas del módulo incluyen la señal de reloj (`clk`), la señal de reset (`reset`), las señales de lectura y escritura de la UART (`rd_uart` y `wr_uart`), la señal de recepción (`rx`) y los datos a escribir (`w_data`).
+The module's inputs include the clock signal (`clk`), reset signal (`reset`), read and write signals for UART (`rd_uart` and `wr_uart`), the receive signal (`rx`), and the data to write (`w_data`).
 
-Las salidas del módulo incluyen las señales de llenado completo y vacío de la transmisión y recepción (`tx_full` y `rx_empty`), la señal de transmisión (`tx`) y los datos leídos (`r_data`).
+The module's outputs include the full and empty transmission and reception flags (`tx_full` and `rx_empty`), the transmission signal (`tx`), and the read data (`r_data`).
 
-El módulo `uart` consta de varias subunidades:
+The `uart` module consists of several submodules:
 
-- `uart_brg`: Genera la señal de tick para la tasa de baudios.
-- `uart_rx`: Maneja la recepción de datos.
-- `uart_tx`: Maneja la transmisión de datos.
-- `fifo_rx_unit` y `fifo_tx_unit`: Son colas FIFO para almacenar los datos recibidos y a transmitir, respectivamente.
+- `uart_brg`: Generates the tick signal for the baud rate.
+- `uart_rx`: Handles the data reception.
+- `uart_tx`: Handles the data transmission.
+- `fifo_rx_unit` and `fifo_tx_unit`: FIFO queues to store received and transmitted data, respectively.
 
-Cada subunidad tiene su propia configuración y señales de entrada y salida, que se conectan a las entradas y salidas del módulo `uart` para formar un sistema de comunicación UART completo.
+Each submodule has its own configuration and input/output signals, which are connected to the inputs and outputs of the `uart` module to form a complete UART communication system.
 
 #### 3.4.2. Debugger
 
 <p align="center">
-  <img src="imgs/Debugger.png" alt="UART">
+  <img src="imgs/Debugger.png" alt="Debugger">
 </p>
 
-El módulo `debugger` se utiliza para depurar y controlar la ejecución de un procesador MIPS mediante la interfaz UART. Permite la carga de programas en la memoria de instrucciones del procesador, la ejecución paso a paso, la visualización de registros y datos en memoria, así como la comunicación con un entorno de desarrollo a través de la interfaz UART. 
+The `debugger` module is used for debugging and controlling the execution of a MIPS processor via the UART interface. It allows loading programs into the processor's instruction memory, step-by-step execution, viewing registers and memory data, as well as communication with a development environment via the UART interface.
 
-Las salida del módulo incluyen:
+The module's outputs include:
 
-- **o_uart_wr:** Señal de escritura para la interfaz UART.
-- **o_uart_rd:** Señal de lectura para la interfaz UART.
-- **o_mips_instruction:** Instrucción actual ejecutada por el procesador.
-- **o_mips_instruction_wr:** Indica si hay una instrucción a escribir en la memoria de instrucciones.
-- **o_mips_flush:** Señal para realizar un flush en el procesador.
-- **o_mips_clear_program:** Señal para limpiar el programa en el procesador.
-- **o_mips_enabled:** Indica si el procesador está habilitado para la ejecución.
-- **o_uart_data_wr:** Datos a escribir en la interfaz UART.
-- **o_status_flags:** Diversas señales de estado, incluyendo el estado de la memoria y la ejecución.
+- **o_uart_wr:** Write signal for the UART interface.
+- **o_uart_rd:** Read signal for the UART interface.
+- **o_mips_instruction:** Current instruction executed by the processor.
+- **o_mips_instruction_wr:** Indicates if there is an instruction to write to the instruction memory.
+- **o_mips_flush:** Signal to perform a flush in the processor.
+- **o_mips_clear_program:** Signal to clear the program in the processor.
+- **o_mips_enabled:** Indicates if the processor is enabled for execution.
+- **o_uart_data_wr:** Data to write to the UART interface.
+- **o_status_flags:** Various status signals, including memory and execution status.
 
-Sus funciones principales son:
+Its main functions are:
 
-1. **Control de Estados:**
-   - El módulo tiene un conjunto de estados que determinan su comportamiento en función de las señales de entrada y salida.
+1. **State Control:**
+   - The module has a set of states that determine its behavior based on the input and output signals.
 
-2. **Carga de Programa:**
-   - En el estado inicial (`DEBUGGER_STATE_IDLE`), el debugger espera comandos a través de la interfaz UART.
-   - Puede cargar programas en la memoria de instrucciones del procesador (`DEBUGGER_STATE_LOAD`).
-   - Detecta comandos como "L" para cargar un programa.
+2. **Program Loading:**
+   - In the initial state (`DEBUGGER_STATE_IDLE`), the debugger waits for commands via the UART interface.
+   - It can load programs into the processor's instruction memory (`DEBUGGER_STATE_LOAD`).
+   - Commands like "L" are detected to load a program.
 
-3. **Ejecución del Programa:**
-   - Puede iniciar la ejecución del programa en el procesador (`DEBUGGER_STATE_RUN`).
-   - Permite la ejecución paso a paso mediante comandos ("S" para un paso, "E" para ejecución continua).
+3. **Program Execution:**
+   - It can start the execution of the program on the processor (`DEBUGGER_STATE_RUN`).
+   - It allows step-by-step execution with commands ("S" for a step, "E" for continuous execution).
 
-4. **Visualización de Registros y Memoria:**
-   - Muestra el contenido de los registros y la memoria en el estado `DEBUGGER_STATE_PRINT_REGISTERS` y `DEBUGGER_STATE_PRINT_MEMORY_DATA` respectivamente.
-   - La información se envía a través de la interfaz UART para su visualización en un entorno de desarrollo.
+4. **Viewing Registers and Memory:**
+   - It shows the content of registers and memory in the `DEBUGGER_STATE_PRINT_REGISTERS` and `DEBUGGER_STATE_PRINT_MEMORY_DATA` states, respectively.
+   - The information is sent through the UART interface for display in a development environment.
 
-5. **Comunicación UART:**
-   - Permite la lectura y escritura de datos a través de la interfaz UART.
-   - Gestiona buffers de lectura y escritura para la comunicación UART.
+5. **UART Communication:**
+   - It allows reading and writing data through the UART interface.
+   - It manages read and write buffers for UART communication.
 
-6. **Control de Flujo:**
-   - Controla el flujo de ejecución del programa MIPS en función de los comandos recibidos y las condiciones del programa.
+6. **Flow Control:**
+   - It controls the flow of program execution based on the received commands and program conditions.
 
-## 4. Simulaciones
-Para garantizar el correcto funcionamiento del sistema MIPS, hemos llevado a cabo una serie de simulaciones utilizando la herramienta de simulación integrada en Vivado. Estas simulaciones nos permiten observar el comportamiento del sistema en un entorno controlado y verificar que todas las partes del sistema funcionan como se espera.
+## 4. Simulations
+To ensure the correct functioning of the MIPS system, a series of simulations have been conducted using the integrated simulation tool in Vivado. These simulations allow us to observe the system's behavior in a controlled environment and verify that all parts of the system work as expected.
 
-Para cada componente del sistema, hemos creado un *Test Bench* específico. Un *Test Bench* es un entorno de simulación que se utiliza para verificar el comportamiento de un módulo bajo diferentes condiciones de entrada. Cada *Test Bench* genera un conjunto de señales de entrada para el módulo que se está probando y luego observa las señales de salida para verificar que el módulo se comporta como se espera.
+For each component of the system, we have created a specific *Test Bench*. A *Test Bench* is a simulation environment used to verify the behavior of a module under different input conditions. Each *Test Bench* generates a set of input signals for the module being tested and then observes the output signals to verify that the module behaves as expected.
 
-### 4.1. Tests Etapa `IF`
+### 4.1. `IF` Stage Tests
 
-#### 4.1.1 Test Bench para el módulo `PC`
+#### 4.1.1 Test Bench for the `PC` Module
 
-El módulo `pc` es responsable de generar la dirección de la siguiente instrucción a ejecutar. Para probar este módulo, hemos creado un *Test Bench* que realiza varias pruebas:
+The `pc` module is responsible for generating the address of the next instruction to execute. To test this module, we created a *Test Bench* that performs several tests:
 
-1. **Prueba de incremento**: Esta prueba verifica que la señal `o_pc` se incrementa correctamente cuando la señal `i_next_pc` se incrementa y `i_enable` está activada. Se incrementa `i_next_pc` diez veces y se espera que `o_pc` sea igual a 10.
+1. **Increment Test:** This test verifies that the `o_pc` signal increments correctly when the `i_next_pc` signal increments and `i_enable` is active. `i_next_pc` is incremented ten times, and `o_pc` is expected to be 10.
 
-2. **Prueba de deshabilitación**: Esta prueba verifica que la señal `o_pc` no se incrementa cuando `i_enable` está desactivada. Se incrementa `i_next_pc` diez veces con `i_enable` desactivado y se espera que `o_pc` siga siendo 10.
+2. **Disable Test:** This test verifies that the `o_pc` signal does not increment when `i_enable` is inactive. `i_next_pc` is incremented ten times with `i_enable` inactive, and `o_pc` is expected to remain 10.
 
-3. **Prueba de parada**: Esta prueba verifica que la señal `o_pc` no se incrementa cuando `i_halt` está activada. Se activa `i_halt`, se incrementa `i_next_pc` cinco veces y se espera que `o_pc` siga siendo 10.
+3. **Stop Test:** This test verifies that the `o_pc` signal does not increment when `i_halt` is active. `i_halt` is activated, `i_next_pc` is incremented five times, and `o_pc` is expected to remain 10.
 
-4. **Prueba de reinicio**: Esta prueba verifica que la señal `o_pc` se reinicia correctamente cuando `i_flush` está activada. Se activa `i_flush`, se incrementa `i_next_pc` diez veces y se espera que `o_pc` sea igual a 35.
+4. **Reset Test:** This test verifies that the `o_pc` signal resets correctly when `i_flush` is activated. `i_flush` is activated, `i_next_pc` is incremented ten times, and `o_pc` is expected to be 35.
 
-5. **Prueba de no carga**: Esta prueba verifica que la señal `o_pc` no se incrementa cuando `i_not_load` está activada. Se activa `i_not_load`, se incrementa `i_next_pc` cinco veces y se espera que `o_pc` siga siendo 35.
+5. **No Load Test:** This test verifies that the `o_pc` signal does not increment when `i_not_load` is active. `i_not_load` is activated, `i_next_pc` is incremented five times, and `o_pc` is expected to remain 35.
 
-6. **Prueba de carga**: Esta prueba verifica que la señal `o_pc` se incrementa correctamente cuando `i_not_load` está desactivada. Se desactiva `i_not_load`, se incrementa `i_next_pc` cinco veces y se espera que `o_pc` sea igual a 45.
+6. **Load Test:** This test verifies that the `o_pc` signal increments correctly when `i_not_load` is inactive. `i_not_load` is deactivated, `i_next_pc` is incremented five times, and `o_pc` is expected to be 45.
 
-7. **Prueba de parada final**: Esta prueba verifica que la señal `o_pc` no se incrementa cuando `i_halt` está activada. Se activa `i_halt` y se espera que `o_pc` siga siendo 45.
+7. **Final Stop Test:** This test verifies that the `o_pc` signal does not increment when `i_halt` is active. `i_halt` is activated, and `o_pc` is expected to remain 45.
 
-En cada prueba, si la salida es la esperada, se muestra un mensaje de que la prueba ha pasado. Si no, se muestra un mensaje de error.
+In each test, if the output matches the expected result, a message indicating the test passed is displayed. Otherwise, an error message is shown.
 
-#### 4.1.2. Test Bench para el módulo `Instruction Memory`
+#### 4.1.2. Test Bench for the `Instruction Memory` Module
 
-El módulo `instruction_memory` es responsable de almacenar y recuperar instrucciones. Para probar este módulo, hemos creado un *Test Bench* que realiza varias pruebas:
+The `instruction_memory` module is responsible for storing and retrieving instructions. To test this module, we created a *Test Bench* that performs several tests:
 
-1. **Prueba de escritura**: Esta prueba verifica que las instrucciones se pueden escribir en la memoria. Se generan instrucciones aleatorias y se escriben en la memoria. Se muestra la instrucción escrita en cada ciclo.
+1. **Write Test:** This test verifies that instructions can be written to memory. Random instructions are generated and written to memory. The written instruction is shown in each cycle.
 
-2. **Prueba de lectura**: Esta prueba verifica que las instrucciones se pueden leer de la memoria. Se leen las instrucciones de la memoria en el mismo orden en que se escribieron y se muestran.
+2. **Read Test:** This test verifies that instructions can be read from memory. Instructions are read from memory in the same order they were written, and the instructions are displayed.
 
-3. **Prueba de limpieza**: Esta prueba verifica que la memoria se puede limpiar correctamente. Se activa la señal `i_clear` para limpiar la memoria y se vuelve a leer las instrucciones para verificar que la memoria se ha limpiado. Luego, se vuelve a escribir y leer las instrucciones para verificar que la memoria puede ser reutilizada.
+3. **Clear Test:** This test verifies that memory can be cleared correctly. The `i_clear` signal is activated to clear the memory, and the instructions are read again to verify the memory has been cleared. Then, instructions are written and read again to verify that memory can be reused.
 
-En cada prueba, se muestra la instrucción escrita o leída para verificar que la operación se ha realizado correctamente.
+In each test, the written or read instruction is displayed to verify that the operation was performed correctly.
 
-#### 4.1.3. Test Bench de integración
-El modulo `IF` es responsable de la etapa de búsqueda de instrucciones del pipeline. Para probar este módulo, hemos creado un *Test Bench* que realiza varias pruebas:
+#### 4.1.3. Integration Test Bench
+The `IF` module is responsible for the instruction fetch stage of the pipeline. To test this module, we have created a *Test Bench* that performs several tests:
 
-1. **Prueba 0**: Escribe 40 instrucciones aleatorias en la memoria y luego escribe una instrucción de parada.
+1. **Test 0**: Write 40 random instructions to memory and then write a halt instruction.
 
-2. **Prueba 1**: Lee las primeras 10 instrucciones de la memoria y muestra la instrucción y el contador de programa (PC).
+2. **Test 1**: Read the first 10 instructions from memory and display the instruction and the program counter (PC).
 
-3. **Prueba 2**: Desactiva la señal `i_enable` y lee las siguientes 5 instrucciones. Como `i_enable` está desactivado, el PC no debería incrementarse.
+3. **Test 2**: Disable the `i_enable` signal and read the next 5 instructions. Since `i_enable` is disabled, the PC should not increment.
 
-4. **Prueba 3**: Activa las señales `i_enable` e `i_halt` y lee las siguientes 5 instrucciones. Como `i_halt` está activado, el PC no debería incrementarse.
+4. **Test 3**: Enable the `i_enable` and `i_halt` signals and read the next 5 instructions. Since `i_halt` is enabled, the PC should not increment.
 
-5. **Prueba 4**: Desactiva la señal `i_halt` y lee las siguientes 10 instrucciones. El PC debería incrementarse después de cada lectura.
+5. **Test 4**: Disable the `i_halt` signal and read the next 10 instructions. The PC should increment after each read.
 
-6. **Prueba 5**: Activa la señal `i_not_load` y lee las siguientes 5 instrucciones. Como `i_not_load` está activado, el PC no debería incrementarse.
+6. **Test 5**: Enable the `i_not_load` signal and read the next 5 instructions. Since `i_not_load` is enabled, the PC should not increment.
 
-7. **Prueba 6**: Desactiva la señal `i_not_load`, reinicia el PC a 0 y lee las siguientes 10 instrucciones. El PC debería incrementarse después de cada lectura.
+7. **Test 6**: Disable the `i_not_load` signal, reset the PC to 0, and read the next 10 instructions. The PC should increment after each read.
 
-8. **Prueba 7**: Cambia la fuente de la próxima PC a `i_next_not_seq_pc` y lee las siguientes 5 instrucciones. El PC debería ser igual a `i_next_not_seq_pc` después de la primera lectura y luego incrementarse después de cada lectura.
+8. **Test 7**: Change the next PC source to `i_next_not_seq_pc` and read the next 5 instructions. The PC should be equal to `i_next_not_seq_pc` after the first read, and then increment after each subsequent read.
 
-9. **Prueba 8**: Limpia la memoria, reinicia el PC a 0 y lee las primeras 5 instrucciones. Como la memoria ha sido limpiada, todas las instrucciones leídas deberían ser 0.
+9. **Test 8**: Clear the memory, reset the PC to 0, and read the first 5 instructions. Since the memory has been cleared, all instructions read should be 0.
 
-En cada prueba, se muestra la instrucción leída y el valor del PC para verificar que la operación se ha realizado correctamente.
+In each test, the instruction read and the value of the PC are displayed to verify that the operation has been performed correctly.
 
-### 4.2. Tests Etapa `ID`
+### 4.2. `ID` Stage Tests
 
-#### 4.2.1 Test Bench para el módulo `Register Bank`
-El módulo `registers_bank` es responsable de almacenar y recuperar datos de los registros. Para probar este módulo, hemos creado un *Test Bench* que realiza varias pruebas:
+#### 4.2.1 Test Bench for the `Register Bank` module
+The `registers_bank` module is responsible for storing and retrieving data from registers. To test this module, we have created a *Test Bench* that performs several tests:
 
-1. **Prueba de escritura**: Esta prueba verifica que los datos se pueden escribir en los registros. Se generan datos aleatorios y se escriben en los registros. Se muestra el dato escrito y la dirección de cada registro.
+1. **Write Test**: This test verifies that data can be written to the registers. Random data is generated and written to the registers. The written data and the address of each register are displayed.
 
-2. **Prueba de lectura**: Esta prueba verifica que los datos se pueden leer de los registros. Se leen los datos de los registros en el bus A y B y se muestran. Las direcciones de los registros para el bus A y B se incrementan y decrementan respectivamente en cada ciclo.
+2. **Read Test**: This test verifies that data can be read from the registers. The data from registers A and B are read and displayed. The register addresses for buses A and B increment and decrement, respectively, with each cycle.
 
-En cada prueba, se muestra el dato leído o escrito y la dirección del registro para verificar que la operación se ha realizado correctamente.
+In each test, the data read or written and the register address are displayed to verify that the operation has been performed correctly.
 
-#### 4.2.2. Test Bench para el módulo `Main Control`
+#### 4.2.2. Test Bench for the `Main Control` module
 
-**Descripción del Testbench:**
-El módulo `main_control` es responsable de generar las señales de control para coordinar orquestar el funcionamiento del procesador. Para probar este módulo, hemos creado un *Test Bench* que realiza varias pruebas:
+**Testbench Description:**
+The `main_control` module is responsible for generating control signals to orchestrate the operation of the processor. To test this module, we have created a *Test Bench* that performs several tests:
 
-1. **Instrucciones R-Type:**
-   - Pruebas para operaciones aritméticas y lógicas (add, sub, and, or, xor, nor, slt).
-   - Pruebas para desplazamientos lógicos y aritméticos (sll, srl, sra).
-   - Pruebas para operaciones sin signo (addu, subu).
-   - Pruebas para desplazamientos lógicos variables (sllv, srlv, srav).
-   - Pruebas para saltos y llamadas (jalr, jr).
+1. **R-Type Instructions:**
+   - Tests for arithmetic and logical operations (add, sub, and, or, xor, nor, slt).
+   - Tests for logical and arithmetic shifts (sll, srl, sra).
+   - Tests for unsigned operations (addu, subu).
+   - Tests for variable logical shifts (sllv, srlv, srav).
+   - Tests for jumps and calls (jalr, jr).
 
-2. **Instrucciones I-Type:**
-   - Pruebas para carga y almacenamiento de datos (lw, sw).
-   - Pruebas para comparaciones y saltos condicionales (beq, bne).
-   - Pruebas para operaciones aritméticas inmediatas (addi).
-   - Pruebas para operaciones lógicas inmediatas (andi, ori, xori).
-   - Pruebas para comparaciones inmediatas (slti).
-   - Prueba para cargar una constante en la parte alta del registro (lui).
-   - Pruebas para cargar bytes, halfwords, y words desde la memoria (lb, lbu, lh, lhu, lwu).
+2. **I-Type Instructions:**
+   - Tests for data load and store operations (lw, sw).
+   - Tests for conditional branches (beq, bne).
+   - Tests for immediate arithmetic operations (addi).
+   - Tests for immediate logical operations (andi, ori, xori).
+   - Tests for immediate comparisons (slti).
+   - Test for loading a constant into the upper part of the register (lui).
+   - Tests for loading bytes, halfwords, and words from memory (lb, lbu, lh, lhu, lwu).
 
-3. **Instrucciones J-Type:**
-   - Pruebas para saltos incondicionales (j, jal).
+3. **J-Type Instructions:**
+   - Tests for unconditional jumps (j, jal).
 
-4. **Condiciones de Salto:**
-   - Pruebas para condiciones de salto en instrucciones branch (beq, bne).
-   - Verificación de las señales de control en función del resultado de la comparación.
+4. **Branch Conditions:**
+   - Tests for branch conditions in branch instructions (beq, bne).
+   - Verification of control signals based on comparison results.
 
-5. **Escenarios Especiales:**
-   - Pruebas con instrucciones nop y condiciones especiales.
+5. **Special Scenarios:**
+   - Tests with nop instructions and special conditions.
 
-Cada prueba verifica que las señales de control generadas (`o_ctrl_regs`) coincidan con los valores esperados para cada configuración de entrada. Este enfoque proporciona una cobertura completa del comportamiento del módulo `main_control` en diversos contextos, garantizando su correcta funcionalidad.
+Each test verifies that the control signals generated (`o_ctrl_regs`) match the expected values for each input configuration. This approach ensures comprehensive coverage of the `main_control` module's behavior in various contexts, ensuring its correct functionality.
 
-#### 4.2.3. Test Brench de integración
-El modulo `ID` es responsable de la etapa de decodificación de instrucciones del pipeline. Para probar este módulo, hemos creado un *Test Bench* que realiza varias pruebas:
+#### 4.2.3. Integration Test Bench
+The `ID` module is responsible for the instruction decoding stage of the pipeline. To test this module, we have created a *Test Bench* that performs several tests:
 
-1. **Carga de Instrucciones Aleatorias:** Se generan aleatoriamente instrucciones y se cargan en el módulo `id`. Luego, se observa si las salidas del módulo coinciden con las expectativas. Se incluyen casos de instrucciones de tipo R y de tipo I, con diferentes funciones.
+1. **Loading Random Instructions:** Random instructions are generated and loaded into the `id` module. Then, it is observed if the module's outputs match expectations. This includes cases for both R-type and I-type instructions with different functions.
 
-2. **Pruebas de Instrucciones Específicas:** Se llevan a cabo pruebas específicas para diversas instrucciones, como `BEQ`, `BNE`, `LW`, `SW`, `J`, `JAL`, etc. Se espera que las salidas del módulo se ajusten a los resultados esperados para cada una de estas instrucciones. Se verifica la generación correcta de señales de control y los valores de las salidas.
+2. **Specific Instruction Tests:** Specific tests are carried out for various instructions such as `BEQ`, `BNE`, `LW`, `SW`, `J`, `JAL`, etc. The module's outputs are expected to match the expected results for each of these instructions. The correct generation of control signals and the values of the outputs are verified.
 
-3. **Manejo de Excepciones y Caso de NOP:** También se prueba el manejo de la instrucción `NOP` (No Operation), donde el módulo debería generar señales de control específicas y no realizar cambios en el estado del procesador. Además, se verifica que las excepciones y saltos sean manejados correctamente.
+3. **Handling Exceptions and NOP Case:** The handling of the `NOP` (No Operation) instruction is also tested, where the module should generate specific control signals and make no changes to the processor's state. Additionally, it is verified that exceptions and jumps are handled correctly.
 
-4. **Comparación de Resultados:** Después de ejecutar cada instrucción, se comparan las salidas generadas por el módulo con los resultados esperados. Si hay alguna discrepancia, se muestra un mensaje de error con detalles específicos para facilitar la depuración.
+4. **Results Comparison:** After each instruction is executed, the outputs generated by the module are compared with the expected results. If there is any discrepancy, an error message with specific details is displayed to aid in debugging.
 
-5. **Manejo de Datos y Operaciones Aritméticas:** Se prueban instrucciones que involucran transferencia de datos (Load y Store), así como operaciones aritméticas y lógicas. Se espera que las salidas reflejen correctamente las operaciones realizadas por el módulo.
+5. **Data Handling and Arithmetic Operations:** Instructions involving data transfer (Load and Store), as well as arithmetic and logical operations, are tested. The outputs should correctly reflect the operations performed by the module.
 
-### 4.3. Tests Etapa `EX`
+### 4.3. `EX` Stage Tests
 
-#### 4.3.1. Test Bench para el módulo `ALU`
-El módulo `alu` es responsable de realizar operaciones aritméticas y lógicas. Para probar este módulo, hemos creado un *Test Bench* que realiza varias pruebas:
+#### 4.3.1. Test Bench for the `ALU` module
+The `alu` module is responsible for performing arithmetic and logical operations. To test this module, we have created a *Test Bench* that performs several tests:
 
-1. **Pruebas de Instrucciones**: Verifican el correcto funcionamiento de las instrucciones individuales, incluyendo la instrucción `NOP` (No Operation) y el manejo de excepciones y saltos.
+1. **Instruction Tests:** These verify the correct operation of individual instructions, including the `NOP` (No Operation) instruction and the handling of exceptions and jumps.
 
-2. **Comparación de Resultados**: Después de cada instrucción, los resultados generados por el módulo se comparan con los esperados. Si hay discrepancias, se proporcionan detalles para facilitar la depuración.
+2. **Results Comparison:** After each instruction, the results generated by the module are compared with the expected results. If there are discrepancies, details are provided to aid in debugging.
 
-3. **Manejo de Datos y Operaciones Aritméticas**: Se prueban las instrucciones que involucran transferencia de datos y operaciones aritméticas y lógicas. Se espera que las salidas reflejen correctamente las operaciones realizadas por el módulo.
+3. **Data Handling and Arithmetic Operations:** Instructions involving data transfer and arithmetic and logical operations are tested. The outputs should correctly reflect the operations performed by the module.
 
-#### 4.3.2. Test Bench para el módulo `ALU Control`
-El módulo `alu_control` es responsable de generar la señal de control para la unidad de ALU. Para probar este módulo, se realizan una serie de pruebas en las que se proporcionan todas las posibles combinaciones de señales de entrada al módulo de control de la ALU. Esto asegura una cobertura completa de las pruebas, ya que se examinan todos los escenarios posibles. Después de cada prueba, se verifica la señal de control generada por el módulo de control de la ALU. Si la señal de control es la esperada, la prueba se considera exitosa y se imprime un mensaje indicando que la prueba ha pasado. Si la señal de control no es la esperada, la prueba se considera fallida y se imprime un mensaje indicando que la prueba ha fallado.
+#### 4.3.2. Test Bench for the `ALU Control` module
+The `alu_control` module is responsible for generating the control signal for the ALU unit. To test this module, a series of tests are performed, providing all possible combinations of input signals to the ALU control module. This ensures full coverage of the tests, as all possible scenarios are examined. After each test, the control signal generated by the ALU control module is verified. If the control signal is as expected, the test is considered successful, and a message indicating the test passed is printed. If the control signal is not as expected, the test is considered failed, and a message indicating the test failed is printed.
 
-#### 4.3.3. Test Brench de integración
-Debido a la complejidad de realizar la implementación de un *Test Brench* de integración para esta etapa y que el test en si no aporata mucho valor al proyecto, se ha decidido no realizarlo.
+#### 4.3.3. Integration Test Bench
+Due to the complexity of implementing an integration *Test Bench* for this stage and because the test itself does not add much value to the project, it has been decided not to perform it.
 
-### 4.4. Tests Etapa `MEM`
+### 4.4. `MEM` Stage Tests
 
-#### 4.4.1. Test Bench para el módulo `Data Memory`
-El módulo `data_memory` es responsable de la lectura y escritura de datos en la memoria. El banco de pruebas realiza lo siguiente:
+#### 4.4.1. Test Bench for the `Data Memory` module
+The `data_memory` module is responsible for reading and writing data to memory. The test bench performs the following:
 
-1. **Pruebas de Escritura y Lectura**: Escribe 10 valores aleatorios en la memoria y luego los lee. Los valores y las direcciones de memoria se muestran en cada operación de escritura y lectura.
+1. **Write and Read Tests:** 10 random values are written to memory and then read. The values and memory addresses are displayed for each write and read operation.
 
-2. **Prueba del Bus de Depuración**: Muestra los datos de todas las direcciones de memoria en el bus de depuración.
+2. **Debug Bus Test:** Displays the data from all memory addresses on the debug bus.
 
-#### 4.4.2. Test Brench de integración
-El módulo `mem` es responsable de la lectura y escritura de datos en la memoria. El banco de pruebas realiza lo siguiente:
+#### 4.4.2. Integration Test Bench
+The `mem` module is responsible for reading and writing data to memory. The test bench performs the following:
 
-1. **Pruebas de Escritura y Lectura**: Escribe 20 valores aleatorios en la memoria con diferentes fuentes de escritura (`i_mem_wr_src`) y luego los lee con diferentes fuentes de lectura (`i_mem_rd_src`). Los valores, las direcciones de memoria y las fuentes de escritura y lectura se muestran en cada operación de escritura y lectura.
+1. **Write and Read Tests:** 20 random values are written to memory with different write sources (`i_mem_wr_src`) and then read with different read sources (`i_mem_rd_src`). The values, memory addresses, and write and read sources are displayed for each write and read operation.
 
-2. **Prueba del Bus de Depuración**: Muestra los datos de todas las direcciones de memoria en el bus de depuración.
+2. **Debug Bus Test:** Displays the data from all memory addresses on the debug bus.
 
-### 4.5. Tests Etapa `WB`
+### 4.5. `WB` Stage Tests
 
-#### 4.5.1. Test Brench de integración
-El módulo `wb` es responsable de seleccionar los datos que se escribirán en los registros. El banco de pruebas realiza lo siguiente:
+#### 4.5.1. Integration Test Bench
+The `wb` module is responsible for selecting the data that will be written to the registers. The test bench performs the following:
 
-1. **Pruebas de Selección de Datos**: Genera dos valores aleatorios para `i_alu_result` y `i_mem_result`. Luego, cambia el valor de `i_mem_to_reg` para seleccionar entre `i_alu_result` y `i_mem_result`. 
+1. **Data Selection Tests:** Two random values are generated for `i_alu_result` and `i_mem_result`. Then, the value of `i_mem_to_reg` is changed to select between `i_alu_result` and `i_mem_result`.
 
-2. **Verificación de los Resultados**: Verifica si `o_wb_data` es igual a `i_mem_result` cuando `i_mem_to_reg` es 0, y si `o_wb_data` es igual a `i_alu_result` cuando `i_mem_to_reg` es 1. Si los valores son iguales, imprime un mensaje de éxito. Si no son iguales, imprime un mensaje de error.
+2. **Verification of Results:** It checks if `o_wb_data` is equal to `i_mem_result` when `i_mem_to_reg` is 0, and if `o_wb_data` is equal to `i_alu_result` when `i_mem_to_reg` is 1. If the values are equal, a success message is printed. If they are not equal, an error message is printed.
 
-### 4.6. Test `Hazards Units`
+### 4.6. `Hazards Units` Tests
 
-#### 4.6.1. Test Bench para el módulo `Short Circuit`
-El módulo `short_circuit` es responsable del reenvio de datos en el pipeline. El banco de pruebas realiza lo siguiente:
+#### 4.6.1. Test Bench for the `Short Circuit` module
+The `short_circuit` module is responsible for forwarding data in the pipeline. The test bench performs the following:
 
-1. **Pruebas de Cortocircuito**: Genera direcciones aleatorias y las asigna a las señales de entrada `i_ex_mem_addr`, `i_id_ex_rs`, `i_mem_wb_addr` e `i_id_ex_rt`. Luego, cambia los valores de `i_ex_mem_wb` y `i_mem_wb_wb` para simular diferentes condiciones de cortocircuito. 
+1. **Short Circuit Tests:** Random addresses are generated and assigned to the input signals `i_ex_mem_addr`, `i_id_ex_rs`, `i_mem_wb_addr`, and `i_id_ex_rt`. Then, the values of `i_ex_mem_wb` and `i_mem_wb_wb` are changed to simulate different short circuit conditions.
 
-2. **Verificación de los Resultados**: Verifica si `o_sc_data_a_src` y `o_sc_data_b_src` son iguales a los códigos esperados en cada condición de cortocircuito. Si los códigos son iguales, imprime un mensaje de éxito. Si no son iguales, imprime un mensaje de error.
+2. **Verification of Results:** It checks if `o_sc_data_a_src` and `o_sc_data_b_src` are equal to the expected codes for each short circuit condition. If the codes are equal, a success message is printed. If they are not equal, an error message is printed.
 
-#### 4.6.2. Test Bench para el módulo `Risk Detection`
-El módulo `risk_detection` es responsable de detectar y manejar situaciones que podrían causar problemas en el pipeline del procesador, como los riesgos de datos y control. El banco de pruebas realiza lo siguiente:
+#### 4.6.2. Test Bench for the `Risk Detection` module
+The `risk_detection` module is responsible for detecting and handling situations that could cause issues in the processor's pipeline, such as data and control hazards. The test bench performs the following:
 
-1. **Pruebas de Detección de Riesgos**: Configura las señales de entrada para simular diferentes condiciones de riesgo, incluyendo riesgos de carga (`Load Hazard`), paradas de salto (`Jump Stop`) y detenciones (`Halt`).
+1. **Risk Detection Tests:** The input signals are configured to simulate different risk conditions, including load hazards (`Load Hazard`), jump stops (`Jump Stop`), and halts (`Halt`).
 
-2. **Verificación de los Resultados**: Verifica si las señales de salida `o_not_load`, `o_jmp_stop` y `o_halt` son iguales a los valores esperados en cada condición de riesgo. Si los valores son iguales, imprime un mensaje de éxito. Si no son iguales, imprime un mensaje de error.
+2. **Verification of Results:** It checks if the output signals `o_not_load`, `o_jmp_stop`, and `o_halt` are equal to the expected values for each risk condition. If the values are equal, a success message is printed. If they are not equal, an error message is printed.
 
-### 4.7. Otros Tests
-Se hace uso de otros modulos auxiliares para la implementación del procesador, como por ejemplo, el módulo `mux` o el módulo `adder`. Estos modulos son de uso común en varias etapas y cuentan con sus correspondientes *Test Benches* para verificar su correcto funcionamiento. Sin embargo, debido a su simplicidad, no se han incluido en este documento el detalle de los mismos. Por otra parte, la implemetación del *Test Bench* para el módulo `debugger` se ha considerado innecesaria ya que el testeo de su funcioanmiento queda cubierto por el *Test Bench* de integración completa del sistema que se detalla en secciones posteriores. Finalmente, el modulo `uart` viene de un repositorio externo donde previamente se ha realizado un testeo completo de su funcionamiento, por tanto no se implementa un *Test Brench* para el mismo. De igual manera el testeo de este modulo tambien queda cubierto por el *Test Bench* de integración completa del sistema.
+### 4.7. Other Tests
+Other auxiliary modules used in the processor implementation, such as the `mux` module or the `adder` module, are commonly used across multiple stages and have their corresponding *Test Benches* to verify their correct operation. However, due to their simplicity, the details of these tests are not included in this document. On the other hand, the implementation of the *Test Bench* for the `debugger` module has been considered unnecessary since its functionality testing is covered by the complete system integration *Test Bench* detailed in later sections. Finally, the `uart` module comes from an external repository where it has already undergone complete functional testing, so a *Test Bench* for it is not implemented. Likewise, the testing of this module is also covered by the complete system integration *Test Bench*.
 
-### 4.8. Test de Integración `Mips`
-El modulo `mips` es responsable de la integración de todas las etapas del pipeline. Sobre este modulo se ha realizado un *Test Bench* de integración completa del procesador. Este test se ha realizado con el objetivo de verificar el correcto funcionamiento de todas las partes en conjunto. El banco de pruebas realiza lo siguiente:
+### 4.8. `Mips` Integration Test
+The `mips` module is responsible for integrating all the stages of the pipeline. A full processor integration *Test Bench* has been created for this module. This test was performed to verify the correct operation of all parts together. The test bench performs the following:
 
-1. **Programas de Prueba:**
+1. **Test Programs:**
+   - Three programs (`first_program`, `second_program`, `third_program`) are defined with MIPS instructions represented by macros (`ADDI`, `J`, `SW`, etc.).
+   - Each program demonstrates various operations and situations, such as arithmetic operations, jumps, load and store operations, and subroutine calls.
 
-	- Se definen tres programas (`first_program`, `second_program`, `third_program`) con instrucciones MIPS representadas por macros (`ADDI`, `J`, `SW`, etc.).
+2. **Program Execution:**
+   - The programs are executed sequentially in the MIPS processor (`mips`).
+   - Each instruction is loaded into the instruction memory and executed in clock cycles.
 
-	- Cada programa demuestra diversas operaciones y situaciones, como operaciones aritméticas, saltos, operaciones de carga y almacenamiento, y llamadas a subrutinas.
+3. **Continuous Monitoring:**
+   - During execution, changes in registers and data memory are monitored.
+   - It is verified that the changes in registers and memory match the expectations.
 
-2. **Ejecución de Programas:**
+4. **Program Completion:**
+   - The `o_end_program` signal is monitored to determine when the execution of a program finishes.
+   - Relevant information is recorded and displayed after each program finishes.
 
-	- Los programas se ejecutan secuencialmente en el procesador MIPS (`mips`).
+5. **Reset and Flush:**
+   - The processor’s reset (`i_reset`) and flush (`i_flush`) functionality are tested.
 
-	- Cada instrucción se carga en la memoria de instrucciones y se ejecuta en ciclos de reloj.
+6. **Control Flow:**
+   - Control flow scenarios, such as unconditional jumps (`J`), subroutine calls (`JAL`, `JALR`), and conditional jumps (`BEQ`, `BNE`), are tested.
 
-3. **Monitoreo Continuo:**
+7. **Handling Halts:**
+   - The detection and handling of the halt instruction (`HALT`) are tested.
+   - It is verified that execution stops correctly.
 
-   - Durante la ejecución, se monitorean los cambios en los registros y la memoria de datos.
+8. **Memory Verification:**
+   - It is verified that load and store operations (`LW`, `SW`, `LBU`, etc.) are correctly performed in data memory.
 
-   - Se verifica que los cambios en los registros y la memoria coincidan con las expectativas.
+9. **Temporal Monitoring:**
+   - The state of registers and memory is monitored at regular time intervals.
 
-4. **Finalización del Programa:**
+10. **Console Results:**
+    - Detailed information is shown in the console for each change in registers and memory.
+    - The information includes the cycle number (`j`), the affected register or memory address, and the values before and after the change.
 
-   - Se monitorea la señal `o_end_program` para determinar cuándo finaliza la ejecución de un programa.
+#### 4.8.1. Annex 1: Test Programs
 
-   - Se registra y muestra información relevante al finalizar cada programa.
-
-5. **Reset y Flush:**
-
-   - Se prueba la funcionalidad de reset (`i_reset`) y flush (`i_flush`) del procesador.
-
-6. **Control de Flujo:**
-
-   - Se prueban escenarios de control de flujo, como saltos incondicionales (`J`), llamadas a subrutinas (`JAL`, `JALR`), y saltos condicionales (`BEQ`, `BNE`).
-
-7. **Manejo de Halts:**
-
-   - Se prueba la detección y manejo de la instrucción de parada (`HALT`).
-
-   - Se verifica que la ejecución se detiene correctamente.
-
-8. **Verificación de Memoria:**
-
-   - Se verifica que las operaciones de carga y almacenamiento (`LW`, `SW`, `LBU`, etc.) se realizan correctamente en la memoria de datos.
-
-9. **Monitoreo Temporal:**
-
-    - Se monitorea el estado de registros y memoria en intervalos regulares de tiempo.
-
-10. **Resultados en Consola:**
-
-    - Se muestra información detallada en la consola para cada cambio en registros y memoria.
-
-    - La información incluye el número de ciclo (`j`), el registro o dirección de memoria afectado y los valores antes y después del cambio.
-
-#### 4.8.1. Anexo 1: Programas de Prueba
-
-##### 4.8.1.1. Programa 1
+##### 4.8.1.1. Program 1
 ```assembly
 ADDI R4,R0,7123
 ADDI R3,R0,85
@@ -889,7 +869,7 @@ SLTI R27,R19,22614
 HALT
 ```
 
-##### 4.8.1.2. Programa 2
+##### 4.8.1.2. Program 2
 ```assembly
 J	5
 ADDI	R3,R0,85
@@ -923,7 +903,7 @@ ADDI	R11,R0,8
 HALT
 ```
 
-##### 4.8.1.3. Programa 3
+##### 4.8.1.3. Program 3
 ```assembly
 ADDI	R3,R0,85
 JAL	14
@@ -944,87 +924,85 @@ JALR	R30,R31
 HALT
 ```
 
-#### 4.8.2. Anexo 2: Resultados de Ejecución
+#### 4.8.2. Annex 2: Execution Results
 
-##### 4.8.2.1. Ejecución Programa 1
+##### 4.8.2.1. Program 1 Execution
 
 <p align="center">
   <img src="imgs/TB_MIPS_PG1.png" alt="UART">
 </p>
 
-##### 4.8.2.2. Ejecución Programa 2
+##### 4.8.2.2. Program 2 Execution
 
 <p align="center">
   <img src="imgs/TB_MIPS_PG2.png" alt="UART">
 </p>
 
-##### 4.8.2.3. Ejecución Programa 3
+##### 4.8.2.3. Program 3 Execution
 
 <p align="center">
   <img src="imgs/TB_MIPS_PG3.png" alt="UART">
 </p>
 
+### 4.9. System Test
+The `top` module is responsible for integrating all parts of the system (*MIPS*, *Debugger*, and *UART*). A complete system *Test Bench* has been created for this module. The test bench performs the following:
 
-### 4.9. Test de Sistema
-El modulo `top` es responsable de la integración de todas las partes del sistema (*MIPS*, *Debugger* y *UART*). Sobre este modulo se ha realizado un *Test Bench* de sistema completo. El banco de pruebas realiza lo siguiente:
-
-1. **Programa de Prueba:**
+1. **Test Program:**
    
-   - Se define un programa de instrucciones (`first_program`) representado por macros (`ADDI`, `SB`, `LW`, etc.). El programa de prueba utilizado es el [programa 1](#4811-programa-1) de las pruebas de integración del módulo `mips`.
+   - A program of instructions (`first_program`) is defined, represented by macros (`ADDI`, `SB`, `LW`, etc.). The test program used is [program 1](#4811-programa-1) from the integration tests of the `mips` module.
 
-   - El programa simula una secuencia de operaciones MIPS, y los resultados se transmiten y reciben a través de la interfaz serial.
+   - The program simulates a sequence of MIPS operations, and the results are transmitted and received via the serial interface.
 
-2. **Tareas de Envío y Recepción:**
-   - Se implementan tareas (`send` y `receive`) para simular la transmisión y recepción de datos a través de la interfaz serial.
+2. **Transmission and Reception Tasks:**
+   - Tasks (`send` and `receive`) are implemented to simulate the transmission and reception of data over the serial interface.
 
-   - La tarea `send` simula la transmisión de un conjunto de datos.
+   - The `send` task simulates the transmission of a data set.
 
-   - La tarea `receive` simula la recepción de datos.
+   - The `receive` task simulates the reception of data.
 
-3. **Secuencia de Pruebas:**
-   - Se envía un comando inicial a través de la interfaz serial para indicar sistema que comience a recibir instrucciones.
+3. **Test Sequence:**
+   - An initial command is sent via the serial interface to indicate the system to start receiving instructions.
 
-   - Se envían las instrucciones MIPS definidas en `first_program` a través de la interfaz serial.
+   - The MIPS instructions defined in `first_program` are sent through the serial interface.
 
-   - Se enviá el comando de ejecución a través de la interfaz serial para indicar al sistema que comience a ejecutar las instrucciones.
+   - An execution command is sent via the serial interface to instruct the system to begin executing the instructions.
 
-   - Se espera que el sistema procese las instrucciones y envíe los resultados de vuelta.
+   - The system is expected to process the instructions and send the results back.
 
-4. **Recepción y Visualización de Resultados:**
+4. **Reception and Display of Results:**
 
-   - Después de la transmisión de instrucciones, se inicia un ciclo de recepción para recibir los resultados procesados por el sistema.
+   - After the instruction transmission, a reception cycle begins to receive the processed results from the system.
 
-   - Se muestra en la consola el contenido de `r_data` que contiene los resultados recibidos.
+   - The content of `r_data`, which contains the received results, is displayed in the console.
+     
+## 5. Results
 
-## 5. Resultados
+Finally, the bitstream of the complete system is generated and loaded onto the FPGA. The FPGA is connected to a computer via a USB cable, and a test program is run on the computer to verify the system's operation. The system was tested with the three test programs defined in the previous section. It was confirmed that the system worked correctly and that the obtained results were as expected. 
 
-Finalmente, se genera el bitstream del sistema completo y se carga en la FPGA. Se conecta la FPGA a un ordenador mediante un cable USB y se ejecuta un programa de prueba en el ordenador para verificar el funcionamiento del sistema. Se testeo el sistema con los tres programas de prueba definidos en la sección anterior. Se corroboró que el sistema funcionaba correctamente y que los resultados obtenidos eran los esperados. 
-
-### 5.1. Programa 1
+### 5.1. Program 1
 
 <p align="center">
   <img src="imgs/Execute_PG1.png" alt="UART">
 </p>
 
-### 5.2. Programa 2
+### 5.2. Program 2
 
 <p align="center">
   <img src="imgs/Execute_PG2.png" alt="UART">
 </p>
 
-### 5.3. Programa 3
+### 5.3. Program 3
 
 <p align="center">
   <img src="imgs/Execute_PG3.png" alt="UART">
 </p>
 
+## 6. References
 
-## 6. Referencias
+- Patterson, D. A., & Hennessy, J. L. (2013). *Computer Organization and Design MIPS Edition: The Hardware/Software Interface*. Morgan Kaufmann.
 
-- Patterson, D. A., & Hennessy, J. L. (2013). Computer Organization and Design MIPS Edition: The Hardware/Software Interface. Morgan Kaufmann.
+- Hennessy, J. L., & Patterson, D. A. (2011). *Computer Architecture: A Quantitative Approach*. Morgan Kaufmann.
 
-- Hennessy, J. L., & Patterson, D. A. (2011). Computer Architecture: A Quantitative Approach. Morgan Kaufmann.
+- Kane, G., & Heinrich, J. (1992). *MIPS RISC Architecture*. Prentice Hall.
 
-- Kane, G., & Heinrich, J. (1992). MIPS RISC Architecture. Prentice Hall.
-
-- Sweetman, D. (2007). See MIPS Run. Morgan Kaufmann.
+- Sweetman, D. (2007). *See MIPS Run*. Morgan Kaufmann.
